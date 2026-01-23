@@ -1,0 +1,640 @@
+{
+  "info": {
+    "name": "NutriFusion API Collection",
+    "description": "Complete API collection for Layer 1 - Auth, RBAC, Practitioners, Users, Health Profiles, Diet Plans",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "practitionerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "practitionerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "healthProfileId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dietPlanId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register", "user"]
+            }
+          }
+        },
+        {
+          "name": "Register Practitioner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ayush@clinic.com\",\n  \"password\": \"practitioner123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register/practitioner",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register", "practitioner"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Practitioner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ayush@clinic.com\",\n  \"password\": \"practitioner123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"age\": 30,\n  \"gender\": \"Male\",\n  \"height\": 175,\n  \"weight\": 72,\n  \"dietaryPreference\": \"Vegetarian\",\n  \"allergies\": [\"Peanuts\", \"Shellfish\"],\n  \"medicinePreference\": [\"Ayurveda\", \"Modern\"],\n  \"consent\": {\n    \"traditionalMedicine\": true,\n    \"modernMedicine\": true,\n    \"dataUsage\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Prakriti",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vata\": 35,\n  \"pitta\": 45,\n  \"kapha\": 20,\n  \"source\": \"Questionnaire\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/prakriti",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me", "prakriti"]
+            }
+          }
+        },
+        {
+          "name": "Update Mizaj",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"heat\": \"Hot\",\n  \"moisture\": \"Dry\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/mizaj",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me", "mizaj"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👨‍⚕️ Practitioners",
+      "item": [
+        {
+          "name": "Get All Practitioners",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/practitioners?verified=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practitioners"],
+              "query": [
+                {
+                  "key": "verified",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Practitioner Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/practitioners/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practitioners", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Practitioner Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Ayush Kumar\",\n  \"type\": \"Ayurvedic\",\n  \"specialization\": [\"Panchakarma\", \"Diet Therapy\", \"Herbal Medicine\"],\n  \"licenseNumber\": \"AYU2024001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/practitioners/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practitioners", "me"]
+            }
+          }
+        },
+        {
+          "name": "Verify Practitioner (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verified\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/practitioners/{{practitionerId}}/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practitioners", "{{practitionerId}}", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Set Authority Level (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorityLevel\": \"Approver\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/practitioners/{{practitionerId}}/authority",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practitioners", "{{practitionerId}}", "authority"]
+            }
+          }
+        },
+        {
+          "name": "Get Assigned Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/practitioners/me/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practitioners", "me", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get User Health Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/practitioners/users/{{userId}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practitioners", "users", "{{userId}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Confirm User Prakriti",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vata\": 30,\n  \"pitta\": 50,\n  \"kapha\": 20\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/practitioners/users/{{userId}}/confirm-prakriti",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practitioners", "users", "{{userId}}", "confirm-prakriti"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏥 Health Profiles",
+      "item": [
+        {
+          "name": "Create Health Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lifestyle\": {\n    \"activityLevel\": \"Moderate\",\n    \"sleepHours\": 7,\n    \"stressLevel\": \"Medium\"\n  },\n  \"digestionIndicators\": {\n    \"appetite\": \"Normal\",\n    \"bowelRegularity\": \"Regular\",\n    \"bloating\": false,\n    \"acidReflux\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/health-profiles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health-profiles"]
+            }
+          }
+        },
+        {
+          "name": "Get My Health Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/health-profiles/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health-profiles", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Latest Health Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/health-profiles/me/latest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health-profiles", "me", "latest"]
+            }
+          }
+        },
+        {
+          "name": "Update Health Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lifestyle\": {\n    \"activityLevel\": \"Active\",\n    \"sleepHours\": 8,\n    \"stressLevel\": \"Low\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/health-profiles/{{healthProfileId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health-profiles", "{{healthProfileId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🍽️ Diet Plans",
+      "item": [
+        {
+          "name": "Create Diet Plan (Practitioner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"planName\": \"Week 1 - Pitta Balancing\",\n  \"meals\": [\n    {\n      \"mealType\": \"Breakfast\",\n      \"recipeId\": \"<recipe_id_here>\",\n      \"portion\": 1\n    }\n  ],\n  \"validFrom\": \"2026-01-02\",\n  \"validTo\": \"2026-01-09\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/diet-plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet-plans"]
+            }
+          }
+        },
+        {
+          "name": "Get My Diet Plans (User)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/diet-plans/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet-plans", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Diet Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/diet-plans/me/active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet-plans", "me", "active"]
+            }
+          }
+        },
+        {
+          "name": "Update Diet Plan (Editor)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planName\": \"Week 1 - Updated\",\n  \"meals\": [\n    {\n      \"mealType\": \"Breakfast\",\n      \"recipeId\": \"<recipe_id_here>\",\n      \"portion\": 1.5\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/diet-plans/{{dietPlanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet-plans", "{{dietPlanId}}"]
+            }
+          }
+        },
+        {
+          "name": "Approve Diet Plan (Approver)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/diet-plans/{{dietPlanId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet-plans", "{{dietPlanId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Archive Diet Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/diet-plans/{{dietPlanId}}/archive",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet-plans", "{{dietPlanId}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "Get Diet Plans by User (Practitioner)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{practitionerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/diet-plans/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet-plans", "user", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
