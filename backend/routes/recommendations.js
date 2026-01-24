@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
-const { recommendFoods, recommendForMeal: recommendFoodsForMeal, getPersonalizedRecommendations: getPersonalizedFoodRecommendations } = require('../services/intelligence/recommendation/recommendFoods');
-const { recommendRecipes, recommendForMeal: recommendRecipesForMeal, getPersonalizedRecommendations: getPersonalizedRecipeRecommendations } = require('../services/intelligence/recommendation/recommendRecipes');
-const { buildExplanation, buildSummaryExplanation } = require('../services/intelligence/explainability/explanationBuilder');
+const { protect, authorize } = require('../middleware/auth');
+const recommendFoodService = require('../services/intelligence/recommendation/recommendFoods');
+const recommendRecipeService = require('../services/intelligence/recommendation/recommendRecipes');
+const { buildExplanation, buildSummaryExplanation, enhanceWithLLM } = require('../services/intelligence/explainability/explanationBuilder');
+const { buildDebugInfo, buildConflictAnalysis } = require('../services/intelligence/debug/debugService');
+const overrideService = require('../services/intelligence/override/overrideService');
 const User = require('../models/User');
 const HealthProfile = require('../models/HealthProfile');
 
@@ -35,12 +37,13 @@ const buildUserProfile = async (userId) => {
  * @desc    Get personalized food recommendations
  * @access  Private (Patient)
  */
-router.get('/foods', authenticateToken, async (req, res) => {
+router.get('/foods', protect, async (req, res) => {
   try {
-    const { limit = 10, category, minScore = 40 } = req.query;
+    const { limit = 10, category, minScore = 40, llm = 'false' } = req.query;
+    const useLLM = llm === 'true';
 
     // Build complete user profile
-    const userProfile = await buildUserProfile(req.user.userId);
+    const userProfile = await buildUserProfile(req.user._id);
 
     // Get recommendations
     const options = {
@@ -49,16 +52,27 @@ router.get('/foods', authenticateToken, async (req, res) => {
       minScore: parseInt(minScore)
     };
 
-    const result = await getPersonalizedFoodRecommendations(userProfile, options);
+    const result = await recommendFoodService.getPersonalizedRecommendations(userProfile, options);
 
-    // Add explanations
-    const recommendationsWithExplanations = result.recommendations.map(rec => ({
-      ...rec,
-      explanation: buildExplanation(rec, rec.name)
-    }));
+    // Apply practitioner overrides if they exist
+    const recommendationsWithOverrides = await Promise.all(
+      result.recommendations.map(async (rec) => {
+        const override = await overrideService.getOverride(req.user._id, rec._id.toString());
+        return override ? overrideService.applyOverride(rec, override) : rec;
+      })
+    );
+
+    // Add explanations (with optional LLM enhancement)
+    const recommendationsWithExplanations = await Promise.all(
+      recommendationsWithOverrides.map(async (rec) => {
+        const baseExplanation = buildExplanation(rec, rec.name);
+        const explanation = useLLM ? await enhanceWithLLM(baseExplanation, rec) : baseExplanation;
+        return { ...rec, explanation };
+      })
+    );
 
     // Build summary
-    const summaryExplanation = buildSummaryExplanation(result.recommendations, result.summary.userProfile);
+    const summaryExplanation = buildSummaryExplanation(recommendationsWithOverrides, result.summary.userProfile);
 
     res.json({
       success: true,
@@ -86,12 +100,12 @@ router.get('/foods', authenticateToken, async (req, res) => {
  * @desc    Get personalized recipe recommendations
  * @access  Private (Patient)
  */
-router.get('/recipes', authenticateToken, async (req, res) => {
+router.get('/recipes', protect, async (req, res) => {
   try {
     const { limit = 10, category, minScore = 40 } = req.query;
 
     // Build complete user profile
-    const userProfile = await buildUserProfile(req.user.userId);
+    const userProfile = await buildUserProfile(req.user._id);
 
     // Get recommendations
     const options = {
@@ -100,16 +114,24 @@ router.get('/recipes', authenticateToken, async (req, res) => {
       minScore: parseInt(minScore)
     };
 
-    const result = await getPersonalizedRecipeRecommendations(userProfile, options);
+    const result = await recommendRecipeService.getPersonalizedRecommendations(userProfile, options);
+
+    // Apply practitioner overrides if they exist
+    const recommendationsWithOverrides = await Promise.all(
+      result.recommendations.map(async (rec) => {
+        const override = await overrideService.getOverride(req.user._id, rec._id.toString());
+        return override ? overrideService.applyOverride(rec, override) : rec;
+      })
+    );
 
     // Add explanations
-    const recommendationsWithExplanations = result.recommendations.map(rec => ({
+    const recommendationsWithExplanations = recommendationsWithOverrides.map(rec => ({
       ...rec,
       explanation: buildExplanation(rec, rec.name)
     }));
 
     // Build summary
-    const summaryExplanation = buildSummaryExplanation(result.recommendations, result.summary.userProfile);
+    const summaryExplanation = buildSummaryExplanation(recommendationsWithOverrides, result.summary.userProfile);
 
     res.json({
       success: true,
@@ -137,7 +159,7 @@ router.get('/recipes', authenticateToken, async (req, res) => {
  * @desc    Get recommendations for specific meal time
  * @access  Private (Patient)
  */
-router.get('/meal/:mealTime', authenticateToken, async (req, res) => {
+router.get('/meal/:mealTime', protect, async (req, res) => {
   try {
     const { mealTime } = req.params;
     const { type = 'both', limit = 10 } = req.query;
@@ -152,19 +174,19 @@ router.get('/meal/:mealTime', authenticateToken, async (req, res) => {
     }
 
     // Build complete user profile
-    const userProfile = await buildUserProfile(req.user.userId);
+    const userProfile = await buildUserProfile(req.user._id);
 
     const options = { limit: parseInt(limit) };
     let recommendations = [];
 
     // Get foods and/or recipes
     if (type === 'foods' || type === 'both') {
-      const foods = await recommendFoodsForMeal(userProfile, mealTime, options);
+      const foods = await recommendFoodService.recommendForMeal(userProfile, mealTime, options);
       recommendations.push(...foods.map(f => ({ ...f, type: 'food' })));
     }
 
     if (type === 'recipes' || type === 'both') {
-      const recipes = await recommendRecipesForMeal(userProfile, mealTime, options);
+      const recipes = await recommendRecipeService.recommendForMeal(userProfile, mealTime, options);
       recommendations.push(...recipes.map(r => ({ ...r, type: 'recipe' })));
     }
 
@@ -209,15 +231,15 @@ router.get('/meal/:mealTime', authenticateToken, async (req, res) => {
  * @desc    Get complete daily meal plan with recommendations
  * @access  Private (Patient)
  */
-router.get('/dailyplan', authenticateToken, async (req, res) => {
+router.get('/dailyplan', protect, async (req, res) => {
   try {
-    const userProfile = await buildUserProfile(req.user.userId);
+    const userProfile = await buildUserProfile(req.user._id);
 
     // Get recommendations for each meal
-    const breakfast = await recommendRecipesForMeal(userProfile, 'Breakfast', { limit: 3 });
-    const lunch = await recommendRecipesForMeal(userProfile, 'Lunch', { limit: 3 });
-    const dinner = await recommendRecipesForMeal(userProfile, 'Dinner', { limit: 3 });
-    const snacks = await recommendRecipesForMeal(userProfile, 'Snack', { limit: 5 });
+    const breakfast = await recommendRecipeService.recommendForMeal(userProfile, 'Breakfast', { limit: 3 });
+    const lunch = await recommendRecipeService.recommendForMeal(userProfile, 'Lunch', { limit: 3 });
+    const dinner = await recommendRecipeService.recommendForMeal(userProfile, 'Dinner', { limit: 3 });
+    const snacks = await recommendRecipeService.recommendForMeal(userProfile, 'Snack', { limit: 5 });
 
     const dailyPlan = {
       breakfast: breakfast.map(r => ({
@@ -274,6 +296,176 @@ router.get('/dailyplan', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error generating daily meal plan',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/recommendations/debug/:foodId
+ * @desc    Get detailed debug information for a specific food recommendation
+ * @access  Private (Practitioner/Admin only)
+ */
+router.get('/debug/:foodId', protect, authorize('practitioner', 'admin'), async (req, res) => {
+  try {
+    const { foodId } = req.params;
+    const Food = require('../models/Food');
+    const { calculateFoodScore } = require('../services/intelligence/scoring/scoreEngine');
+
+    // Build user profile
+    const userProfile = await buildUserProfile(req.user._id);
+
+    // Get food
+    const food = await Food.findById(foodId).lean();
+    if (!food) {
+      return res.status(404).json({
+        success: false,
+        message: 'Food not found'
+      });
+    }
+
+    // Calculate score
+    const scoreResult = await calculateFoodScore(userProfile, food);
+
+    // Build debug info
+    const debugInfo = buildDebugInfo(userProfile, food, scoreResult);
+    const conflicts = buildConflictAnalysis(scoreResult);
+
+    res.json({
+      success: true,
+      data: {
+        ...debugInfo,
+        conflicts
+      }
+    });
+
+  } catch (error) {
+    console.error('Error generating debug info:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating debug information',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/recommendations/override
+ * @desc    Create a practitioner override for a specific food/recipe recommendation
+ * @access  Private (Practitioner only)
+ */
+router.post('/override', protect, authorize('practitioner'), async (req, res) => {
+  try {
+    const { foodId, recipeId, userId, action, reason, originalScore, newScore } = req.body;
+
+    // Validate input
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+    }
+
+    if (!foodId && !recipeId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Either foodId or recipeId is required'
+      });
+    }
+
+    if (!action || !['approve', 'reject'].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: 'action must be either "approve" or "reject"'
+      });
+    }
+
+    if (!reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'reason is required'
+      });
+    }
+
+    // Create override
+    const override = await overrideService.createOverride({
+      foodId,
+      recipeId,
+      userId,
+      practitionerId: req.user._id,
+      action,
+      reason,
+      originalScore,
+      newScore
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Override created successfully',
+      data: override
+    });
+
+  } catch (error) {
+    console.error('Error creating override:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating override',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/recommendations/overrides/:userId
+ * @desc    Get all practitioner overrides for a specific user
+ * @access  Private (Practitioner/Admin only)
+ */
+router.get('/overrides/:userId', protect, authorize('practitioner', 'admin'), async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Get overrides
+    const overrides = await overrideService.getUserOverrides(userId);
+
+    res.json({
+      success: true,
+      count: overrides.length,
+      data: overrides
+    });
+
+  } catch (error) {
+    console.error('Error fetching overrides:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching overrides',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/recommendations/override/:userId/:itemId
+ * @desc    Check if an override exists for a specific user and item
+ * @access  Private (Practitioner/Admin only)
+ */
+router.get('/override/:userId/:itemId', protect, authorize('practitioner', 'admin'), async (req, res) => {
+  try {
+    const { userId, itemId } = req.params;
+
+    // Check for override
+    const override = await overrideService.getOverride(userId, itemId);
+
+    res.json({
+      success: true,
+      exists: !!override,
+      data: override
+    });
+
+  } catch (error) {
+    console.error('Error checking override:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error checking override',
       error: error.message
     });
   }

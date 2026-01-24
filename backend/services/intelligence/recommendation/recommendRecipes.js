@@ -15,8 +15,8 @@ const recommendRecipes = async (user, options = {}) => {
   const { limit = 10, category = null, minScore = 40 } = options;
 
   try {
-    // Build query
-    let query = { isApproved: true };
+    // Build query - fetch all recipes (approved or not for now)
+    let query = {};
     if (category) {
       query.category = category;
     }

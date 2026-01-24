@@ -4,6 +4,23 @@
  * NOTE: LLM integration is OPTIONAL - AI is ONLY for text formatting, NOT decision-making
  */
 
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// Initialize Gemini (only if API key is available)
+let genAI = null;
+let geminiModel = null;
+
+if (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    genAI = new GoogleGenerativeAI(apiKey);
+    geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    console.log('✅ Gemini LLM initialized for explanation enhancement');
+  } catch (error) {
+    console.warn('⚠️ Gemini initialization failed, using base explanations only:', error.message);
+  }
+}
+
 /**
  * Build natural language explanation from reasons
  * @param {Object} scoreData - {finalScore, reasons, warnings, systemScores}
@@ -136,31 +153,45 @@ const buildSimpleExplanation = (scoreData, itemName) => {
 };
 
 /**
- * OPTIONAL: Placeholder for LLM-based explanation enhancement
+ * OPTIONAL: LLM-based explanation enhancement using Gemini
  * NOTE: This is OPTIONAL and AI is ONLY for formatting, NOT for logic
  * @param {String} baseExplanation - Rule-based explanation
- * @returns {String} - Enhanced explanation (currently returns original)
+ * @param {Object} scoreData - Original score data for context
+ * @returns {String} - Enhanced explanation (or original if LLM unavailable)
  */
-const enhanceWithLLM = async (baseExplanation) => {
-  // PLACEHOLDER: Integrate with OpenAI/Claude API if needed
-  // The LLM should ONLY rephrase the explanation, NOT make decisions
-  
-  // Example integration (not implemented):
-  // const response = await openai.chat.completions.create({
-  //   model: "gpt-3.5-turbo",
-  //   messages: [{
-  //     role: "system",
-  //     content: "Rephrase the following nutrition recommendation in friendly, conversational language. Do NOT change the facts or scores."
-  //   }, {
-  //     role: "user",
-  //     content: baseExplanation
-  //   }],
-  //   temperature: 0.7
-  // });
-  // return response.choices[0].message.content;
+const enhanceWithLLM = async (baseExplanation, scoreData = {}) => {
+  // If Gemini is not available, return original
+  if (!geminiModel) {
+    return baseExplanation;
+  }
 
-  // For now, return original
-  return baseExplanation;
+  try {
+    // Create prompt for Gemini
+    const prompt = `You are a friendly, knowledgeable nutritionist explaining a food recommendation to a patient.
+
+IMPORTANT RULES:
+1. Convert the technical explanation below into warm, conversational language
+2. Keep ALL facts, scores, and reasons accurate - DO NOT add new medical claims
+3. Write 2-3 friendly sentences that explain why this food is recommended
+4. Use simple language, avoid jargon
+5. Maintain the same level of recommendation (highly recommended / suitable / not recommended)
+
+TECHNICAL EXPLANATION TO CONVERT:
+${baseExplanation}
+
+Your friendly explanation (2-3 sentences):`;
+
+    const result = await geminiModel.generateContent(prompt);
+    const enhancedText = result.response.text();
+
+    // Fallback to original if Gemini returns empty
+    return enhancedText && enhancedText.trim() ? enhancedText.trim() : baseExplanation;
+
+  } catch (error) {
+    // Rate limit or API error - silently fallback to original
+    console.warn('LLM enhancement failed, using base explanation:', error.message);
+    return baseExplanation;
+  }
 };
 
 module.exports = {

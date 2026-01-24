@@ -4,18 +4,22 @@ const { evaluateUnani } = require('../rules/unani.rules');
 const { evaluateTCM } = require('../rules/tcm.rules');
 const { evaluateModern } = require('../rules/modern.rules');
 const { evaluateSafety } = require('../rules/safety.rules');
+const { getRuleWeights, applyWeights } = require('../config/configService');
 
 /**
- * Score Engine - Aggregates scores from all medical systems
+ * Score Engine - Aggregates scores from all medical systems with configurable weights
  */
 
 /**
  * Calculate final score for a food item
  * @param {Object} user - User profile
  * @param {Object} food - Food item
+ * @param {Object} options - { applyWeights: true, weights: {} }
  * @returns {Object} - {finalScore, reasons, warnings, block, systemScores}
  */
-const calculateFoodScore = (user, food) => {
+const calculateFoodScore = async (user, food, options = {}) => {
+  const { applyWeights: shouldApplyWeights = true } = options;
+  
   // Base score
   let finalScore = 50;
   
@@ -30,7 +34,7 @@ const calculateFoodScore = (user, food) => {
   const modernResult = evaluateModern(user, food);
   const safetyResult = evaluateSafety(user, food);
 
-  // Track individual system scores for transparency
+  // Track individual system scores (raw deltas)
   const systemScores = {
     ayurveda: ayurvedaResult.scoreDelta,
     unani: unaniResult.scoreDelta,
@@ -39,12 +43,19 @@ const calculateFoodScore = (user, food) => {
     safety: safetyResult.scoreDelta
   };
 
+  // Apply weights if enabled
+  let weightedScores = systemScores;
+  if (shouldApplyWeights) {
+    const weights = options.weights || await getRuleWeights();
+    weightedScores = applyWeights(systemScores, weights);
+  }
+
   // Apply all score deltas
-  finalScore += ayurvedaResult.scoreDelta;
-  finalScore += unaniResult.scoreDelta;
-  finalScore += tcmResult.scoreDelta;
-  finalScore += modernResult.scoreDelta;
-  finalScore += safetyResult.scoreDelta;
+  finalScore += weightedScores.ayurveda;
+  finalScore += weightedScores.unani;
+  finalScore += weightedScores.tcm;
+  finalScore += weightedScores.modern;
+  finalScore += weightedScores.safety;
 
   // Clamp score between 0 and 100
   finalScore = clampScore(finalScore, 0, 100);
@@ -77,7 +88,8 @@ const calculateFoodScore = (user, food) => {
     reasons: allReasons,
     warnings: allWarnings,
     block: blocked,
-    systemScores
+    systemScores,
+    weightedScores: shouldApplyWeights ? weightedScores : null
   };
 };
 
@@ -85,9 +97,10 @@ const calculateFoodScore = (user, food) => {
  * Calculate final score for a recipe
  * @param {Object} user - User profile
  * @param {Object} recipe - Recipe with aggregated nutrition
+ * @param {Object} options - { applyWeights: true, weights: {} }
  * @returns {Object} - {finalScore, reasons, warnings, block, systemScores}
  */
-const calculateRecipeScore = (user, recipe) => {
+const calculateRecipeScore = async (user, recipe, options = {}) => {
   // For recipes, we evaluate the aggregated nutrition as if it's a food item
   // Convert recipe to food-like structure
   const recipeAsFood = {
@@ -101,7 +114,7 @@ const calculateRecipeScore = (user, recipe) => {
     tcm: recipe.tcm || {}
   };
 
-  return calculateFoodScore(user, recipeAsFood);
+  return calculateFoodScore(user, recipeAsFood, options);
 };
 
 module.exports = {
