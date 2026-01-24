@@ -24,6 +24,7 @@ const healthProfileRoutes = require('./routes/healthProfiles');
 const foodRoutes = require('./routes/foods');
 const recipeRoutes = require('./routes/recipes');
 const dietPlanRoutes = require('./routes/dietPlans');
+const recommendationRoutes = require('./routes/recommendations');
 
 // Basic route
 app.get('/', (req, res) => {
@@ -38,7 +39,8 @@ app.get('/', (req, res) => {
       healthProfiles: '/api/health-profiles',
       foods: '/api/foods',
       recipes: '/api/recipes',
-      dietPlans: '/api/diet-plans'
+      dietPlans: '/api/diet-plans',
+      recommendations: '/api/recommendations'
     }
   });
 });
@@ -60,6 +62,7 @@ app.use('/api/health-profiles', healthProfileRoutes);
 app.use('/api/foods', foodRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/diet-plans', dietPlanRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
