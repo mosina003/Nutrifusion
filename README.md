@@ -39,11 +39,12 @@ A comprehensive nutrition management platform that combines traditional healing 
 - **Role-Based Access Control** - 4 authority levels
 
 ### Current Status
-✅ **45 REST APIs** built and tested
+✅ **49 REST APIs** built and tested
 - Layer 1: 33 APIs (Auth, Users, Practitioners, Health Profiles, Diet Plans)
 - Layer 2: 12 APIs (Food Management, Recipe Management)
+- Layer 3: 4 APIs (Intelligent Recommendations - Foods, Recipes, Meals, Daily Plans)
 
-### Frontend (Layer 3 - Planned)
+### Frontend (Layer 4 - Planned)
 - React.js with modern UI/UX
 - Practitioner and Patient dashboards
 - Admin panel
@@ -145,7 +146,17 @@ DELETE /api/diet-plans/:id       # Delete plan
 PUT    /api/diet-plans/:id/approve  # Approve plan
 ```
 
+### Intelligent Recommendations (Layer 3)
+```bash
+GET    /api/recommendations/foods        # Personalized food recommendations
+GET    /api/recommendations/recipes      # Personalized recipe recommendations
+GET    /api/recommendations/meal/:time   # Meal-specific recommendations (Breakfast/Lunch/Dinner/Snack)
+GET    /api/recommendations/dailyplan    # Complete daily meal plan
+```
+
 **[Full API Documentation](backend/POSTMAN_TESTING_GUIDE.md)**
+
+**[Layer 3 Testing Guide](backend/LAYER3_TESTING_GUIDE.md)**
 
 ---
 
@@ -227,18 +238,27 @@ Nutrifusion/
 │   │   ├── healthProfiles.js    # Health profiles
 │   │   ├── dietPlans.js         # Diet plans
 │   │   ├── foods.js             # Food management
-│   │   └── recipes.js           # Recipe management
+│   │   ├── recipes.js           # Recipe management
+│   │   └── recommendations.js   # Intelligent recommendations (Layer 3)
 │   ├── services/
-│   │   └── nutritionCalculator.js  # Nutrition calculation service
+│   │   ├── nutritionCalculator.js  # Nutrition calculation service
+│   │   └── intelligence/        # Layer 3: Recommendation Engine
+│   │       ├── rules/           # Rule engines (Ayurveda, Unani, TCM, Modern, Safety)
+│   │       ├── scoring/         # Score aggregation engine
+│   │       ├── recommendation/  # Food & recipe recommendation engines
+│   │       └── explainability/  # Human-readable explanations
 │   ├── scripts/
 │   │   ├── seedRecipes.js       # Seed foods & recipes
 │   │   ├── testFoodAPIs.js      # Food API tests
 │   │   └── testDietPlanAPI.js   # Diet plan tests
 │   ├── server.js                # Express server
 │   ├── package.json             # Dependencies
+│   ├── POSTMAN_TESTING_GUIDE.md # Layer 1 & 2 testing
+│   ├── LAYER3_TESTING_GUIDE.md  # Layer 3 testing scenarios
 │   └── .env.example             # Environment template
-├── frontend/ (Planned - Layer 3)
+├── frontend/ (Planned - Layer 4)
 ├── .gitignore
+├── COMMIT_GUIDE.md              # Daily commit templates
 └── README.md
 ```
 
@@ -258,13 +278,26 @@ Nutrifusion/
 - Auto-calculated Nutrition
 - Search & Filter
 
-### 🔄 Phase 3: Frontend (In Progress)
+### ✅ Phase 3: Backend Layer 3 (Complete)
+- **Intelligent Recommendation Engine**
+- Rule-based scoring (5 medical systems)
+- Ayurveda dosha compatibility
+- Unani Mizaj balancing
+- TCM Yin-Yang balancing
+- Modern nutrition science
+- Safety contraindications
+- Personalized food/recipe recommendations
+- Meal-specific recommendations
+- Daily meal plan generation
+- Human-readable explanations
+
+### 🔄 Phase 4: Frontend (In Progress)
 - React.js UI
 - Practitioner Dashboard
 - Patient Dashboard
 - Admin Panel
 
-### 📋 Phase 4: Advanced Features (Planned)
+### 📋 Phase 5: Advanced Features (Planned)
 - Meal Planning Automation
 - Grocery List Generation
 - Progress Tracking & Analytics
