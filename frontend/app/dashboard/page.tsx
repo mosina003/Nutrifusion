@@ -8,9 +8,14 @@ import { DietPlanTimeline } from '@/components/dashboard/diet-plan-timeline'
 import { HealthInsights } from '@/components/dashboard/health-insights'
 import { YogaLifestyle } from '@/components/dashboard/yoga-lifestyle'
 import { ProgressCharts } from '@/components/dashboard/progress-charts'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { useAuth } from '@/context/AuthContext'
 
 export default function DashboardPage() {
+  const { user, logout } = useAuth()
+
   return (
+    <ProtectedRoute requiredRole="user">
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Top Navigation Bar */}
       <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
@@ -33,8 +38,17 @@ export default function DashboardPage() {
               <Button variant="ghost" size="icon" className="text-slate-600 hover:text-slate-900">
                 <Settings className="w-5 h-5" />
               </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-slate-600 hover:text-slate-900"
+                onClick={logout}
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
               <div className="h-8 w-8 bg-gradient-to-br from-orange-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity">
-                U
+                {(user?.name || user?.email)?.charAt(0).toUpperCase()}
               </div>
             </div>
           </div>
@@ -45,8 +59,8 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8 animate-fade-in">
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome back, Sarah!</h2>
-          <p className="text-lg text-slate-600">Today is Wednesday, February 5th. Let's continue your wellness journey.</p>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome back, {user?.name || 'User'}!</h2>
+          <p className="text-lg text-slate-600">Today is {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Let's continue your wellness journey.</p>
         </div>
 
         {/* Dashboard Sections */}
@@ -86,5 +100,6 @@ export default function DashboardPage() {
         }
       `}</style>
     </div>
+    </ProtectedRoute>
   )
 }

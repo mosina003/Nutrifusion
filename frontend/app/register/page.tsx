@@ -1,28 +1,76 @@
 'use client'
 
 import React from "react"
-
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { register } from '@/lib/api'
+import { useAuth } from '@/context/AuthContext'
 
 export default function RegisterPage() {
+  const router = useRouter()
+  const { setAuthUser } = useAuth()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [role, setRole] = useState('user')
+  const [role, setRole] = useState<'user' | 'practitioner'>('user')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
+
+    // Client-side validation
     if (password !== confirmPassword) {
-      alert('Passwords do not match!')
+      setError('Passwords do not match!')
       return
     }
-    console.log('Register attempt:', { fullName, email, password, role })
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await register({
+        name: fullName,
+        email,
+        password,
+        role,
+      })
+
+      if (response.success && response.data) {
+        // Update auth context with user data
+        const userData = response.data.data
+        if (userData) {
+          setAuthUser(userData)
+        }
+        
+        // Redirect based on user role
+        const userRole = userData?.role || role
+        
+        if (userRole === 'practitioner') {
+          router.push('/practitioner')
+        } else {
+          router.push('/dashboard')
+        }
+      } else {
+        setError(response.error || 'Registration failed. Please try again.')
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+      console.error('Registration error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -47,6 +95,13 @@ export default function RegisterPage() {
 
           {/* Form section */}
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                <p className="text-sm text-red-600 font-medium">{error}</p>
+              </div>
+            )}
+
             {/* Full Name Field */}
             <div className="space-y-2">
               <Label htmlFor="fullName" className="text-slate-700 font-medium">
@@ -57,8 +112,13 @@ export default function RegisterPage() {
                 type="text"
                 placeholder="John Doe"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => {
+                  setFullName(e.target.value)
+                  setError('')
+                }}
                 className="h-11 rounded-lg border-slate-200 focus:border-blue-400 focus:ring-blue-400/20 transition-all"
+                disabled={loading}
+                autoComplete="name"
                 required
               />
             </div>
@@ -73,8 +133,13 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setError('')
+                }}
                 className="h-11 rounded-lg border-slate-200 focus:border-blue-400 focus:ring-blue-400/20 transition-all"
+                disabled={loading}
+                autoComplete="email"
                 required
               />
             </div>
@@ -89,10 +154,17 @@ export default function RegisterPage() {
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  setError('')
+                }}
                 className="h-11 rounded-lg border-slate-200 focus:border-blue-400 focus:ring-blue-400/20 transition-all"
+                disabled={loading}
+                autoComplete="new-password"
                 required
+                minLength={6}
               />
+              <p className="text-xs text-slate-500">Must be at least 6 characters</p>
             </div>
 
             {/* Confirm Password Field */}
@@ -105,8 +177,13 @@ export default function RegisterPage() {
                 type="password"
                 placeholder="••••••••"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value)
+                  setError('')
+                }}
                 className="h-11 rounded-lg border-slate-200 focus:border-blue-400 focus:ring-blue-400/20 transition-all"
+                disabled={loading}
+                autoComplete="new-password"
                 required
               />
             </div>
@@ -114,7 +191,10 @@ export default function RegisterPage() {
             {/* Role Selection */}
             <div className="space-y-3 pt-2">
               <Label className="text-slate-700 font-medium">I am a:</Label>
-              <RadioGroup value={role} onValueChange={setRole}>
+              <RadioGroup 
+                value={role} 
+                onValueChange={(value: string) => setRole(value as 'user' | 'practitioner')}
+              >
                 <div className="flex items-center space-x-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-all">
                   <RadioGroupItem value="user" id="user" className="text-blue-500" />
                   <Label
@@ -139,9 +219,20 @@ export default function RegisterPage() {
             {/* Register Button */}
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 mt-6"
+              disabled={loading}
+              className="w-full h-11 bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 mt-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              Register
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Creating account...
+                </span>
+              ) : (
+                'Register'
+              )}
             </Button>
           </form>
 

@@ -3,7 +3,7 @@
  * Allows practitioners to override recommendation scores with clinical judgment
  */
 
-const AuditLog = require('../../models/AuditLog');
+const AuditLog = require('../../../models/AuditLog');
 
 /**
  * Create a practitioner override

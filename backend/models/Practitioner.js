@@ -55,8 +55,6 @@ const practitionerSchema = new mongoose.Schema({
 });
 
 // Index for faster queries
-practitionerSchema.index({ email: 1 });
-practitionerSchema.index({ licenseNumber: 1 });
 practitionerSchema.index({ verified: 1 });
 
 module.exports = mongoose.model('Practitioner', practitionerSchema);

@@ -7,6 +7,7 @@ const Recipe = require('./Recipe');
 const DietPlan = require('./DietPlan');
 const AuditLog = require('./AuditLog');
 const MedicalCondition = require('./MedicalCondition');
+const SystemConfig = require('./SystemConfig');
 
 module.exports = {
   User,
@@ -16,5 +17,6 @@ module.exports = {
   Recipe,
   DietPlan,
   AuditLog,
-  MedicalCondition
+  MedicalCondition,
+  SystemConfig
 };

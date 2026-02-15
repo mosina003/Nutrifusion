@@ -8,8 +8,10 @@ import { AIReviewPanel } from '@/components/practitioner/ai-review-panel'
 import { AlertsPanel } from '@/components/practitioner/alerts-panel'
 import { AnalyticsSection } from '@/components/practitioner/analytics-section'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Bell, Settings, UserCircle, Users, Activity } from 'lucide-react'
+import { Bell, Settings, UserCircle, Users, Activity, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { useAuth } from '@/context/AuthContext'
 
 interface SelectedPatient {
   id: string
@@ -21,8 +23,10 @@ interface SelectedPatient {
 
 export default function PractitionerDashboard() {
   const [selectedPatient, setSelectedPatient] = useState<SelectedPatient | null>(null)
+  const { user, logout } = useAuth()
 
   return (
+    <ProtectedRoute requiredRole="practitioner">
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Top Navigation Bar */}
       <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
@@ -45,8 +49,17 @@ export default function PractitionerDashboard() {
               <Button variant="ghost" size="icon" className="text-slate-600 hover:text-slate-900">
                 <Settings className="w-5 h-5" />
               </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-slate-600 hover:text-slate-900"
+                onClick={logout}
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
               <div className="h-8 w-8 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity">
-                <UserCircle className="w-5 h-5" />
+                {(user?.name || user?.email)?.charAt(0).toUpperCase()}
               </div>
             </div>
           </div>
@@ -63,13 +76,13 @@ export default function PractitionerDashboard() {
               <Users className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-slate-900">Welcome back, Dr. Patel!</h2>
+              <h2 className="text-3xl font-bold text-slate-900">Welcome back, {user?.name || 'Practitioner'}!</h2>
               <p className="text-lg text-slate-600">Monitor patients and review AI recommendations</p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-500">
             <Activity className="w-4 h-4" />
-            <span>Today is Wednesday, February 9th, 2026</span>
+            <span>Today is {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
         </div>
 
@@ -137,5 +150,6 @@ export default function PractitionerDashboard() {
         }
       `}</style>
     </div>
+    </ProtectedRoute>
   )
 }

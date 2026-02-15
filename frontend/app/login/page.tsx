@@ -1,22 +1,57 @@
 'use client'
 
 import React from "react"
-
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { login } from '@/lib/api'
+import { useAuth } from '@/context/AuthContext'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const { setAuthUser } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Login attempt:', { email, password, rememberMe })
+    setError('')
+    setLoading(true)
+
+    try {
+      const response = await login({ email, password })
+
+      if (response.success && response.data) {
+        // Update auth context with user data
+        const userData = response.data.data
+        if (userData) {
+          setAuthUser(userData)
+        }
+        
+        // Check user role and redirect accordingly
+        const userRole = userData?.role
+        
+        if (userRole === 'practitioner') {
+          router.push('/practitioner')
+        } else {
+          router.push('/dashboard')
+        }
+      } else {
+        setError(response.error || 'Login failed. Please try again.')
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+      console.error('Login error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -41,6 +76,13 @@ export default function LoginPage() {
 
           {/* Form section */}
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                <p className="text-sm text-red-600 font-medium">{error}</p>
+              </div>
+            )}
+
             {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-slate-700 font-medium">
@@ -51,8 +93,13 @@ export default function LoginPage() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setError('') // Clear error when user starts typing
+                }}
                 className="h-11 rounded-lg border-slate-200 focus:border-blue-400 focus:ring-blue-400/20 transition-all"
+                disabled={loading}
+                autoComplete="email"
                 required
               />
             </div>
@@ -67,8 +114,13 @@ export default function LoginPage() {
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  setError('') // Clear error when user starts typing
+                }}
                 className="h-11 rounded-lg border-slate-200 focus:border-blue-400 focus:ring-blue-400/20 transition-all"
+                disabled={loading}
+                autoComplete="current-password"
                 required
               />
             </div>
@@ -100,9 +152,20 @@ export default function LoginPage() {
             {/* Login Button */}
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 mt-6"
+              disabled={loading}
+              className="w-full h-11 bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 mt-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              Login
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Logging in...
+                </span>
+              ) : (
+                'Login'
+              )}
             </Button>
           </form>
 

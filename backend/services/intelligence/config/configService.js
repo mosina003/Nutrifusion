@@ -3,7 +3,7 @@
  * Manages system-wide configuration including rule weights
  */
 
-const SystemConfig = require('../../models/SystemConfig');
+const SystemConfig = require('../../../models/SystemConfig');
 
 // Default configuration
 const DEFAULT_CONFIG = {
