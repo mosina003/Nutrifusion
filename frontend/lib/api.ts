@@ -90,6 +90,8 @@ interface AuthResponse {
     role: 'user' | 'practitioner'
     verified?: boolean
     authorityLevel?: string
+    hasCompletedAssessment?: boolean
+    preferredMedicalFramework?: string
   }
 }
 
@@ -177,7 +179,7 @@ export const login = async (credentials: LoginCredentials): Promise<ApiResponse<
 
   if (response.success && response.data) {
     setToken(response.data.token)
-    setUser(response.data.data)
+    setUser(response.data.data)  // data property from AuthResponse
   }
 
   return response
@@ -409,6 +411,101 @@ export const updateSystemConfig = async (configData: any): Promise<ApiResponse<a
   return await makeRequest('/config', {
     method: 'PUT',
     body: JSON.stringify(configData),
+  })
+}
+
+// ============================================
+// Assessment APIs
+// ============================================
+
+/**
+ * Get available assessment frameworks
+ */
+export const getAssessmentFrameworks = async (): Promise<ApiResponse<any>> => {
+  return await makeRequest('/assessments/frameworks', {
+    method: 'GET',
+  })
+}
+
+/**
+ * Get questions for a specific framework
+ */
+export const getAssessmentQuestions = async (framework: string): Promise<ApiResponse<any>> => {
+  return await makeRequest(`/assessments/questions/${framework}`, {
+    method: 'GET',
+  })
+}
+
+/**
+ * Submit assessment responses
+ */
+export const submitAssessment = async (data: {
+  framework: string
+  responses: Record<string, any>
+}): Promise<ApiResponse<any>> => {
+  return await makeRequest('/assessments/submit', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+/**
+ * Get user's assessment history
+ */
+export const getUserAssessments = async (userId?: string): Promise<ApiResponse<any>> => {
+  const endpoint = userId ? `/assessments/user/${userId}` : '/assessments/user'
+  return await makeRequest(endpoint, {
+    method: 'GET',
+  })
+}
+
+/**
+ * Get detailed assessment by ID
+ */
+export const getAssessmentById = async (assessmentId: string): Promise<ApiResponse<any>> => {
+  return await makeRequest(`/assessments/${assessmentId}`, {
+    method: 'GET',
+  })
+}
+
+/**
+ * Get active assessment for user
+ */
+export const getActiveAssessment = async (framework?: string): Promise<ApiResponse<any>> => {
+  const endpoint = framework ? `/assessments/active/${framework}` : '/assessments/active'
+  return await makeRequest(endpoint, {
+    method: 'GET',
+  })
+}
+
+/**
+ * Delete an assessment
+ */
+export const deleteAssessment = async (assessmentId: string): Promise<ApiResponse<any>> => {
+  return await makeRequest(`/assessments/${assessmentId}`, {
+    method: 'DELETE',
+  })
+}
+
+/**
+ * Validate assessment responses
+ */
+export const validateAssessmentResponses = async (data: {
+  framework: string
+  responses: Record<string, any>
+}): Promise<ApiResponse<any>> => {
+  return await makeRequest('/assessments/validate', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+/**
+ * Get assessment statistics
+ */
+export const getAssessmentStats = async (): Promise<ApiResponse<any>> => {
+  return await makeRequest('/assessments/stats/summary', {
+    method: 'GET',
   })
 }
 

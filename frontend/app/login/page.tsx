@@ -27,10 +27,14 @@ export default function LoginPage() {
 
     try {
       const response = await login({ email, password })
+      
+      console.log('📊 Full Login Response:', JSON.stringify(response, null, 2))
 
       if (response.success && response.data) {
         // Update auth context with user data
         const userData = response.data.data
+        console.log('📊 User Data:', JSON.stringify(userData, null, 2))
+        
         if (userData) {
           setAuthUser(userData)
         }
@@ -41,7 +45,15 @@ export default function LoginPage() {
         if (userRole === 'practitioner') {
           router.push('/practitioner')
         } else {
-          router.push('/dashboard')
+          // For regular users, check if they've completed assessment
+          console.log('🔍 hasCompletedAssessment:', userData?.hasCompletedAssessment)
+          if (!userData?.hasCompletedAssessment) {
+            console.log('➡️ Redirecting to /onboarding')
+            router.push('/onboarding')
+          } else {
+            console.log('➡️ Redirecting to /dashboard')
+            router.push('/dashboard')
+          }
         }
       } else {
         setError(response.error || 'Login failed. Please try again.')

@@ -12,21 +12,12 @@ const protect = async (req, res, next) => {
 
     // Check for token in Authorization header
     const authHeader = req.headers.authorization;
-    console.log('\n=== AUTH MIDDLEWARE DEBUG ===');
-    console.log('Full header value:', JSON.stringify(authHeader));
-    console.log('Header length:', authHeader ? authHeader.length : 0);
-    console.log('Starts with Bearer?', authHeader ? authHeader.startsWith('Bearer') : false);
     
     if (authHeader && authHeader.startsWith('Bearer')) {
-      const parts = authHeader.split(' ');
-      console.log('Split parts:', parts.length, 'parts');
-      console.log('Part 0:', parts[0]);
-      console.log('Part 1 (first 30 chars):', parts[1] ? parts[1].substring(0, 30) : 'NONE');
-      token = parts[1];
+      token = authHeader.split(' ')[1];
     }
 
     if (!token) {
-      console.log('❌ No token found');
       return res.status(401).json({
         success: false,
         message: 'Not authorized to access this route. Token required.'
@@ -34,18 +25,6 @@ const protect = async (req, res, next) => {
     }
 
     // Verify token
-    try {
-      const decoded = verifyToken(token);
-      console.log('✅ Token decoded successfully:', decoded);
-    } catch (error) {
-      console.log('❌ Token verification failed:', error.message);
-      return res.status(401).json({
-        success: false,
-        message: 'Not authorized to access this route',
-        error: error.message
-      });
-    }
-    
     const decoded = verifyToken(token);
 
     // Check user type and fetch from database
@@ -57,6 +36,7 @@ const protect = async (req, res, next) => {
           message: 'User not found'
         });
       }
+      req.userId = decoded.id; // Set userId for easy access
     } else if (decoded.role === 'practitioner') {
       req.practitioner = await Practitioner.findById(decoded.id).select('-password');
       if (!req.practitioner) {
@@ -69,6 +49,7 @@ const protect = async (req, res, next) => {
       // Add practitioner type and authority to request
       req.practitionerType = req.practitioner.type;
       req.authorityLevel = req.practitioner.authorityLevel;
+      req.userId = decoded.id; // Set userId for practitioners too
     }
 
     req.userRole = decoded.role;

@@ -11,6 +11,8 @@ interface User {
   role: 'user' | 'practitioner'
   verified?: boolean
   authorityLevel?: string
+  hasCompletedAssessment?: boolean
+  preferredMedicalFramework?: string
 }
 
 interface AuthContextType {
@@ -80,6 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.success && response.data) {
         const userData = response.data.data || response.data
         setUser(userData)
+        // Update localStorage as well
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('nutrifusion_user', JSON.stringify(userData))
+        }
       }
     } catch (error) {
       console.error('Error refreshing user:', error)
@@ -88,6 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const setAuthUser = (user: User) => {
     setUser(user)
+    // Also update localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nutrifusion_user', JSON.stringify(user))
+    }
   }
 
   const value = {

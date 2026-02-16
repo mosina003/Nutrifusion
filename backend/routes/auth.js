@@ -154,7 +154,8 @@ router.post('/login/user', async (req, res) => {
     }
 
     // Find user and include password for comparison
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase() })
+      .select('+password hasCompletedAssessment preferredMedicalFramework');
 
     if (!user) {
       return res.status(401).json({
@@ -180,6 +181,13 @@ router.post('/login/user', async (req, res) => {
       email: user.email
     });
 
+    console.log('✅ User login - Assessment status:', {
+      userId: user._id,
+      email: user.email,
+      hasCompletedAssessment: user.hasCompletedAssessment,
+      preferredMedicalFramework: user.preferredMedicalFramework
+    });
+
     res.status(200).json({
       success: true,
       message: 'Login successful',
@@ -187,7 +195,9 @@ router.post('/login/user', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: 'user'
+        role: 'user',
+        hasCompletedAssessment: user.hasCompletedAssessment || false,
+        preferredMedicalFramework: user.preferredMedicalFramework
       },
       token
     });
@@ -287,7 +297,8 @@ router.post('/login', async (req, res) => {
     }
 
     // Try to find user first
-    let user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    let user = await User.findOne({ email: email.toLowerCase() })
+      .select('+password hasCompletedAssessment preferredMedicalFramework');
     
     if (user) {
       // Check password
@@ -307,6 +318,13 @@ router.post('/login', async (req, res) => {
         email: user.email
       });
 
+      console.log('✅ User login (unified) - Assessment status:', {
+        userId: user._id,
+        email: user.email,
+        hasCompletedAssessment: user.hasCompletedAssessment,
+        preferredMedicalFramework: user.preferredMedicalFramework
+      });
+
       return res.status(200).json({
         success: true,
         message: 'Login successful',
@@ -314,7 +332,9 @@ router.post('/login', async (req, res) => {
           _id: user._id,
           name: user.name,
           email: user.email,
-          role: 'user'
+          role: 'user',
+          hasCompletedAssessment: user.hasCompletedAssessment || false,
+          preferredMedicalFramework: user.preferredMedicalFramework
         },
         token
       });

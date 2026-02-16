@@ -60,7 +60,8 @@ export default function RegisterPage() {
         if (userRole === 'practitioner') {
           router.push('/practitioner')
         } else {
-          router.push('/dashboard')
+          // New users should go through onboarding
+          router.push('/onboarding')
         }
       } else {
         setError(response.error || 'Registration failed. Please try again.')

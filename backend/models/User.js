@@ -112,6 +112,15 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Practitioner'
   },
+  hasCompletedAssessment: {
+    type: Boolean,
+    default: false
+  },
+  preferredMedicalFramework: {
+    type: String,
+    enum: ['ayurveda', 'unani', 'tcm', 'modern'],
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
