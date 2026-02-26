@@ -121,6 +121,17 @@ const userSchema = new mongoose.Schema({
     enum: ['ayurveda', 'unani', 'tcm', 'modern'],
     default: null
   },
+  llmCache: {
+    foodsToAvoid: [{
+      type: String
+    }],
+    generatedAt: Date,
+    assessmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Assessment'
+    },
+    expiresAt: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now

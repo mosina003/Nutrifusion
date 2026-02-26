@@ -34,18 +34,14 @@ const DEFAULT_CONFIG = {
  */
 const getConfig = async () => {
   try {
-    let config = await SystemConfig.findOne({ key: 'ruleEngine' });
+    const config = await SystemConfig.getConfig();
     
-    if (!config) {
-      // Create default config
-      config = await SystemConfig.create({
-        key: 'ruleEngine',
-        value: DEFAULT_CONFIG,
-        description: 'Rule engine configuration including weights and conflict resolution'
-      });
-    }
-
-    return config.value;
+    return {
+      ruleWeights: config.ruleWeights || DEFAULT_CONFIG.ruleWeights,
+      conflictResolution: config.conflictResolution || DEFAULT_CONFIG.conflictResolution,
+      cacheSettings: config.cacheSettings || DEFAULT_CONFIG.cacheSettings,
+      scoringRules: config.scoringRules || DEFAULT_CONFIG.scoringRules
+    };
   } catch (error) {
     console.error('Error fetching config, using defaults:', error);
     return DEFAULT_CONFIG;
@@ -57,20 +53,14 @@ const getConfig = async () => {
  */
 const updateConfig = async (updates) => {
   try {
-    let config = await SystemConfig.findOne({ key: 'ruleEngine' });
+    const config = await SystemConfig.updateConfig(updates);
     
-    if (!config) {
-      config = await SystemConfig.create({
-        key: 'ruleEngine',
-        value: { ...DEFAULT_CONFIG, ...updates },
-        description: 'Rule engine configuration'
-      });
-    } else {
-      config.value = { ...config.value, ...updates };
-      await config.save();
-    }
-
-    return config.value;
+    return {
+      ruleWeights: config.ruleWeights || DEFAULT_CONFIG.ruleWeights,
+      conflictResolution: config.conflictResolution || DEFAULT_CONFIG.conflictResolution,
+      cacheSettings: config.cacheSettings || DEFAULT_CONFIG.cacheSettings,
+      scoringRules: config.scoringRules || DEFAULT_CONFIG.scoringRules
+    };
   } catch (error) {
     console.error('Error updating config:', error);
     throw error;

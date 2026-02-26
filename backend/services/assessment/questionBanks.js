@@ -6,226 +6,221 @@
 module.exports = {
   /**
    * AYURVEDA QUESTION BANK
-   * 18 questions across 5 categories
+   * 18 questions across 3 sections
+   * Section A: Body & Constitution (Q1-Q6)
+   * Section B: Digestion & Metabolism (Q7-Q12)
+   * Section C: Mental & Emotional Tendencies (Q13-Q18)
    */
   ayurveda: {
     framework: 'ayurveda',
     totalQuestions: 18,
     categories: {
-      body_structure: { weight: 2 },
-      digestion: { weight: 2 },
-      energy: { weight: 1 },
-      emotional: { weight: 1 },
-      sleep_climate: { weight: 1 }
+      body_constitution: { name: 'Body & Constitution', questionIds: ['ay_q1', 'ay_q2', 'ay_q3', 'ay_q4', 'ay_q5', 'ay_q6'] },
+      digestion_metabolism: { name: 'Digestion & Metabolism', questionIds: ['ay_q7', 'ay_q8', 'ay_q9', 'ay_q10', 'ay_q11', 'ay_q12'] },
+      mental_emotional: { name: 'Mental & Emotional Tendencies', questionIds: ['ay_q13', 'ay_q14', 'ay_q15', 'ay_q16', 'ay_q17', 'ay_q18'] }
     },
     questions: [
-      // Body Structure (weight 2)
+      // SECTION A — Body & Constitution (6 Questions)
       {
         id: 'ay_q1',
-        category: 'body_structure',
-        weight: 2,
-        question: 'How would you describe your body frame?',
+        category: 'body_constitution',
+        section: 'A',
+        question: 'My body frame is:',
         options: [
-          { text: 'Thin, light frame with prominent bones', dosha: 'vata', weight: 2 },
-          { text: 'Medium build with good muscle development', dosha: 'pitta', weight: 2 },
-          { text: 'Large, solid, well-built frame', dosha: 'kapha', weight: 2 }
+          { text: 'Thin, light, small bones', dosha: 'vata', weight: 1 },
+          { text: 'Medium build, athletic', dosha: 'pitta', weight: 1 },
+          { text: 'Broad, solid, heavy', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q2',
-        category: 'body_structure',
-        weight: 2,
-        question: 'What is your natural body weight tendency?',
+        category: 'body_constitution',
+        section: 'A',
+        question: 'My skin is usually:',
         options: [
-          { text: 'Difficulty gaining weight, stays thin easily', dosha: 'vata', weight: 2 },
-          { text: 'Moderate weight, can gain or lose with effort', dosha: 'pitta', weight: 2 },
-          { text: 'Gains weight easily, difficult to lose', dosha: 'kapha', weight: 2 }
+          { text: 'Dry, rough, cool', dosha: 'vata', weight: 1 },
+          { text: 'Warm, slightly oily, prone to redness', dosha: 'pitta', weight: 1 },
+          { text: 'Smooth, moist, thick', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q3',
-        category: 'body_structure',
-        weight: 2,
-        question: 'How is your skin typically?',
+        category: 'body_constitution',
+        section: 'A',
+        question: 'My hair is:',
         options: [
-          { text: 'Dry, rough, thin, cool to touch', dosha: 'vata', weight: 2 },
-          { text: 'Warm, oily, prone to redness/inflammation', dosha: 'pitta', weight: 2 },
-          { text: 'Thick, moist, smooth, cool', dosha: 'kapha', weight: 2 }
+          { text: 'Dry, thin, frizzy', dosha: 'vata', weight: 1 },
+          { text: 'Fine, straight, may gray early', dosha: 'pitta', weight: 1 },
+          { text: 'Thick, oily, wavy', dosha: 'kapha', weight: 1 }
         ]
       },
-
-      // Digestion & Metabolism (weight 2)
       {
         id: 'ay_q4',
-        category: 'digestion',
-        weight: 2,
-        question: 'How would you describe your appetite?',
+        category: 'body_constitution',
+        section: 'A',
+        question: 'I gain weight:',
         options: [
-          { text: 'Variable - sometimes hungry, sometimes not', dosha: 'vata', weight: 2 },
-          { text: 'Strong and regular - gets irritable if meal is missed', dosha: 'pitta', weight: 2 },
-          { text: 'Steady but can skip meals without discomfort', dosha: 'kapha', weight: 2 }
+          { text: 'Very difficult to gain', dosha: 'vata', weight: 1 },
+          { text: 'Moderate, depends on diet', dosha: 'pitta', weight: 1 },
+          { text: 'Easily and hard to lose', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q5',
-        category: 'digestion',
-        weight: 2,
-        question: 'What is your typical digestion like?',
+        category: 'body_constitution',
+        section: 'A',
+        question: 'My natural energy pattern is:',
         options: [
-          { text: 'Irregular - sometimes good, often gas/bloating', dosha: 'vata', weight: 2 },
-          { text: 'Strong, quick - prone to acidity/heartburn', dosha: 'pitta', weight: 2 },
-          { text: 'Slow and steady - may feel heavy after meals', dosha: 'kapha', weight: 2 }
+          { text: 'High bursts, then crash', dosha: 'vata', weight: 1 },
+          { text: 'Steady and strong', dosha: 'pitta', weight: 1 },
+          { text: 'Slow but long-lasting', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q6',
-        category: 'digestion',
-        weight: 2,
-        question: 'How is your bowel movement pattern?',
+        category: 'body_constitution',
+        section: 'A',
+        question: 'My body temperature:',
         options: [
-          { text: 'Irregular, tends toward constipation, dry', dosha: 'vata', weight: 2 },
-          { text: 'Regular, 2-3 times daily, may be loose', dosha: 'pitta', weight: 2 },
-          { text: 'Slow but regular, heavy, well-formed', dosha: 'kapha', weight: 2 }
+          { text: 'Feel cold easily', dosha: 'vata', weight: 1 },
+          { text: 'Feel hot easily', dosha: 'pitta', weight: 1 },
+          { text: 'Comfortable but dislike damp cold', dosha: 'kapha', weight: 1 }
         ]
       },
 
-      // Energy Pattern (weight 1)
+      // SECTION B — Digestion & Metabolism (6 Questions)
       {
         id: 'ay_q7',
-        category: 'energy',
-        weight: 1,
-        question: 'How would you describe your energy levels throughout the day?',
+        category: 'digestion_metabolism',
+        section: 'B',
+        question: 'My appetite is:',
         options: [
-          { text: 'Comes in bursts - high energy then suddenly tired', dosha: 'vata', weight: 1 },
-          { text: 'Consistent and strong throughout the day', dosha: 'pitta', weight: 1 },
-          { text: 'Steady and enduring, slow to start', dosha: 'kapha', weight: 1 }
+          { text: 'Irregular', dosha: 'vata', weight: 1 },
+          { text: 'Strong and sharp', dosha: 'pitta', weight: 1 },
+          { text: 'Slow but steady', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q8',
-        category: 'energy',
-        weight: 1,
-        question: 'How do you handle physical exertion?',
+        category: 'digestion_metabolism',
+        section: 'B',
+        question: 'If I skip a meal:',
         options: [
-          { text: 'Quick bursts of activity, tire easily', dosha: 'vata', weight: 1 },
-          { text: 'Moderate endurance with focused intensity', dosha: 'pitta', weight: 1 },
-          { text: 'Good stamina and endurance, slow but steady', dosha: 'kapha', weight: 1 }
+          { text: 'I feel anxious or shaky', dosha: 'vata', weight: 1 },
+          { text: 'I get irritable or angry', dosha: 'pitta', weight: 1 },
+          { text: 'I feel fine', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q9',
-        category: 'energy',
-        weight: 1,
-        question: 'What is your body temperature preference?',
+        category: 'digestion_metabolism',
+        section: 'B',
+        question: 'After eating I usually feel:',
         options: [
-          { text: 'Feel cold easily, prefer warmth', dosha: 'vata', weight: 1 },
-          { text: 'Run warm, prefer cool environments', dosha: 'pitta', weight: 1 },
-          { text: 'Comfortable in most temperatures, slight preference for warmth', dosha: 'kapha', weight: 1 }
+          { text: 'Bloated or gassy', dosha: 'vata', weight: 1 },
+          { text: 'Hot or acidic', dosha: 'pitta', weight: 1 },
+          { text: 'Heavy or sleepy', dosha: 'kapha', weight: 1 }
         ]
       },
-
-      // Emotional Traits (weight 1)
       {
         id: 'ay_q10',
-        category: 'emotional',
-        weight: 1,
-        question: 'How would you describe your mental tendencies?',
+        category: 'digestion_metabolism',
+        section: 'B',
+        question: 'My bowel movement is:',
         options: [
-          { text: 'Quick thinking, creative, easily distracted', dosha: 'vata', weight: 1 },
-          { text: 'Sharp intellect, focused, perfectionist', dosha: 'pitta', weight: 1 },
-          { text: 'Calm, methodical, steady learner', dosha: 'kapha', weight: 1 }
+          { text: 'Dry, irregular', dosha: 'vata', weight: 1 },
+          { text: 'Loose or frequent', dosha: 'pitta', weight: 1 },
+          { text: 'Well-formed but slow', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q11',
-        category: 'emotional',
-        weight: 1,
-        question: 'How do you typically handle stress?',
+        category: 'digestion_metabolism',
+        section: 'B',
+        question: 'I crave:',
         options: [
-          { text: 'Become anxious, worried, overwhelmed', dosha: 'vata', weight: 1 },
-          { text: 'Become irritated, angry, frustrated', dosha: 'pitta', weight: 1 },
-          { text: 'Become withdrawn, sluggish, depressed', dosha: 'kapha', weight: 1 }
+          { text: 'Warm, salty foods', dosha: 'vata', weight: 1 },
+          { text: 'Cool, sweet foods', dosha: 'pitta', weight: 1 },
+          { text: 'Spicy, stimulating foods', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q12',
-        category: 'emotional',
-        weight: 1,
-        question: 'What is your natural emotional disposition?',
+        category: 'digestion_metabolism',
+        section: 'B',
+        question: 'My digestion feels:',
         options: [
-          { text: 'Enthusiastic, changeable, sometimes fearful', dosha: 'vata', weight: 1 },
-          { text: 'Determined, passionate, sometimes aggressive', dosha: 'pitta', weight: 1 },
-          { text: 'Calm, loving, sometimes possessive', dosha: 'kapha', weight: 1 }
+          { text: 'Unpredictable', dosha: 'vata', weight: 1 },
+          { text: 'Fast and intense', dosha: 'pitta', weight: 1 },
+          { text: 'Slow but stable', dosha: 'kapha', weight: 1 }
         ]
       },
 
-      // Sleep & Climate (weight 1)
+      // SECTION C — Mental & Emotional Tendencies (6 Questions)
       {
         id: 'ay_q13',
-        category: 'sleep_climate',
-        weight: 1,
-        question: 'What is your typical sleep pattern?',
+        category: 'mental_emotional',
+        section: 'C',
+        question: 'Under stress I become:',
         options: [
-          { text: 'Light sleeper, interrupted sleep, difficulty falling asleep', dosha: 'vata', weight: 1 },
-          { text: 'Moderate sleep, usually sound, may wake from dreams', dosha: 'pitta', weight: 1 },
-          { text: 'Deep, long sleep, hard to wake up', dosha: 'kapha', weight: 1 }
+          { text: 'Anxious or fearful', dosha: 'vata', weight: 1 },
+          { text: 'Irritated or angry', dosha: 'pitta', weight: 1 },
+          { text: 'Withdrawn or lethargic', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q14',
-        category: 'sleep_climate',
-        weight: 1,
-        question: 'How many hours of sleep do you naturally need?',
+        category: 'mental_emotional',
+        section: 'C',
+        question: 'My thinking style:',
         options: [
-          { text: '5-7 hours, often restless', dosha: 'vata', weight: 1 },
-          { text: '6-8 hours, usually sound', dosha: 'pitta', weight: 1 },
-          { text: '8-10+ hours, love sleeping', dosha: 'kapha', weight: 1 }
+          { text: 'Creative but scattered', dosha: 'vata', weight: 1 },
+          { text: 'Sharp and focused', dosha: 'pitta', weight: 1 },
+          { text: 'Slow but steady', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q15',
-        category: 'sleep_climate',
-        weight: 1,
-        question: 'Which weather affects you most negatively?',
+        category: 'mental_emotional',
+        section: 'C',
+        question: 'My sleep:',
         options: [
-          { text: 'Cold, dry, windy weather', dosha: 'vata', weight: 1 },
-          { text: 'Hot, humid weather', dosha: 'pitta', weight: 1 },
-          { text: 'Cold, damp, cloudy weather', dosha: 'kapha', weight: 1 }
+          { text: 'Light and interrupted', dosha: 'vata', weight: 1 },
+          { text: 'Moderate and vivid dreams', dosha: 'pitta', weight: 1 },
+          { text: 'Deep and long', dosha: 'kapha', weight: 1 }
         ]
       },
-
-      // Additional comprehensive questions
       {
         id: 'ay_q16',
-        category: 'body_structure',
-        weight: 2,
-        question: 'How is your hair typically?',
+        category: 'mental_emotional',
+        section: 'C',
+        question: 'My speech pattern:',
         options: [
-          { text: 'Dry, thin, brittle', dosha: 'vata', weight: 2 },
-          { text: 'Fine, oily, straight, early graying', dosha: 'pitta', weight: 2 },
-          { text: 'Thick, oily, wavy, lustrous', dosha: 'kapha', weight: 2 }
+          { text: 'Fast and enthusiastic', dosha: 'vata', weight: 1 },
+          { text: 'Precise and direct', dosha: 'pitta', weight: 1 },
+          { text: 'Calm and slow', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q17',
-        category: 'emotional',
-        weight: 1,
-        question: 'What best describes your speech pattern?',
+        category: 'mental_emotional',
+        section: 'C',
+        question: 'I prefer weather that is:',
         options: [
-          { text: 'Fast, talkative, jumps topics', dosha: 'vata', weight: 1 },
-          { text: 'Sharp, precise, argumentative', dosha: 'pitta', weight: 1 },
-          { text: 'Slow, melodious, thoughtful', dosha: 'kapha', weight: 1 }
+          { text: 'Warm', dosha: 'vata', weight: 1 },
+          { text: 'Cool', dosha: 'pitta', weight: 1 },
+          { text: 'Dry and warm', dosha: 'kapha', weight: 1 }
         ]
       },
       {
         id: 'ay_q18',
-        category: 'energy',
-        weight: 1,
-        question: 'How do you approach new activities or learning?',
+        category: 'mental_emotional',
+        section: 'C',
+        question: 'My memory:',
         options: [
-          { text: 'Learn quickly but forget easily', dosha: 'vata', weight: 1 },
-          { text: 'Learn at moderate pace, good retention', dosha: 'pitta', weight: 1 },
-          { text: 'Learn slowly but never forget', dosha: 'kapha', weight: 1 }
+          { text: 'Quick to learn, quick to forget', dosha: 'vata', weight: 1 },
+          { text: 'Moderate learning, good retention', dosha: 'pitta', weight: 1 },
+          { text: 'Slow to learn, long retention', dosha: 'kapha', weight: 1 }
         ]
       }
     ]
@@ -233,179 +228,274 @@ module.exports = {
 
   /**
    * UNANI QUESTION BANK
-   * 16 questions across 5 categories
+   * 20 questions across 4 sections
+   * Based on Mizaj (Hot/Cold + Moist/Dry) and Akhlat (Four Humors)
+   * Section A: Heat & Cold Dominance (Q1-Q5)
+   * Section B: Moisture & Dryness Patterns (Q6-Q10)
+   * Section C: Humor-Specific Symptoms (Q11-Q15)
+   * Section D: Digestive & Organ Strength (Q16-Q20)
+   * 
+   * Scoring Map:
+   * A = Dam (Hot + Moist)
+   * B = Safra (Hot + Dry)
+   * C = Balgham (Cold + Moist)
+   * D = Sauda (Cold + Dry)
    */
   unani: {
     framework: 'unani',
-    totalQuestions: 16,
+    totalQuestions: 20,
+    categories: {
+      heat_cold_dominance: { name: 'Heat & Cold Dominance', questionIds: ['un_q1', 'un_q2', 'un_q3', 'un_q4', 'un_q5'] },
+      moisture_dryness: { name: 'Moisture & Dryness Patterns', questionIds: ['un_q6', 'un_q7', 'un_q8', 'un_q9', 'un_q10'] },
+      humor_symptoms: { name: 'Humor-Specific Symptoms', questionIds: ['un_q11', 'un_q12', 'un_q13', 'un_q14', 'un_q15'], weight: 2 },
+      digestive_organ: { name: 'Digestive & Organ Strength', questionIds: ['un_q16', 'un_q17', 'un_q18', 'un_q19', 'un_q20'], weight: 2 }
+    },
     questions: [
-      // Thermal Tendency
+      // SECTION A — Heat & Cold Dominance (5 Questions)
       {
         id: 'un_q1',
-        category: 'thermal',
-        question: 'How does your body typically feel temperature-wise?',
+        category: 'heat_cold_dominance',
+        section: 'A',
+        question: 'My body generally feels:',
         options: [
-          { text: 'I feel warm/hot most of the time', heat: 1, cold: 0, dry: 0, moist: 0 },
-          { text: 'I feel cool/cold most of the time', heat: 0, cold: 1, dry: 0, moist: 0 },
-          { text: 'I feel comfortable at normal temperatures', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Warm and lively', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Hot and intense', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Cool and heavy', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Cold and tense', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q2',
-        category: 'thermal',
-        question: 'What type of weather do you prefer?',
+        category: 'heat_cold_dominance',
+        section: 'A',
+        question: 'I usually prefer:',
         options: [
-          { text: 'Cool weather - I dislike heat', heat: 1, cold: 0, dry: 0, moist: 0 },
-          { text: 'Warm weather - I dislike cold', heat: 0, cold: 1, dry: 0, moist: 0 },
-          { text: 'Moderate weather', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Cool drinks occasionally', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Very cold drinks', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Warm drinks', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Hot drinks', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q3',
-        category: 'thermal',
-        question: 'How is your thirst level?',
+        category: 'heat_cold_dominance',
+        section: 'A',
+        question: 'In summer I:',
         options: [
-          { text: 'Very thirsty, drink cold water frequently', heat: 1, cold: 0, dry: 1, moist: 0 },
-          { text: 'Moderate thirst', heat: 0, cold: 0, dry: 0, moist: 0 },
-          { text: 'Low thirst, prefer warm drinks', heat: 0, cold: 1, dry: 0, moist: 0 }
+          { text: 'Feel slightly uncomfortable', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Feel extremely irritated', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Feel comfortable', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Feel weak but stable', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q4',
-        category: 'thermal',
-        question: 'How is your complexion?',
+        category: 'heat_cold_dominance',
+        section: 'A',
+        question: 'In winter I:',
         options: [
-          { text: 'Reddish, flushed, warm skin', heat: 1, cold: 0, dry: 0, moist: 0 },
-          { text: 'Pale, cool skin', heat: 0, cold: 1, dry: 0, moist: 0 },
-          { text: 'Normal, balanced complexion', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Feel comfortable', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Feel energized and warm', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Feel very sluggish', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Feel stiff and uncomfortable', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
+        ]
+      },
+      {
+        id: 'un_q5',
+        category: 'heat_cold_dominance',
+        section: 'A',
+        question: 'My hands and feet are usually:',
+        options: [
+          { text: 'Warm', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Hot', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Cool', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Cold', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
 
-      // Moisture Tendency
-      {
-        id: 'un_q5',
-        category: 'moisture',
-        question: 'How is your skin\'s moisture level?',
-        options: [
-          { text: 'Oily, moist skin', heat: 0, cold: 0, dry: 0, moist: 1 },
-          { text: 'Dry, rough skin', heat: 0, cold: 0, dry: 1, moist: 0 },
-          { text: 'Normal, balanced', heat: 0, cold: 0, dry: 0, moist: 0 }
-        ]
-      },
+      // SECTION B — Moisture & Dryness Patterns (5 Questions)
       {
         id: 'un_q6',
-        category: 'moisture',
-        question: 'How is your perspiration?',
+        category: 'moisture_dryness',
+        section: 'B',
+        question: 'My skin tends to be:',
         options: [
-          { text: 'Sweat profusely and easily', heat: 1, cold: 0, dry: 0, moist: 1 },
-          { text: 'Rarely sweat, skin stays dry', heat: 0, cold: 1, dry: 1, moist: 0 },
-          { text: 'Moderate sweating', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Slightly moist', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Dry but warm', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Oily or clammy', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Very dry', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q7',
-        category: 'moisture',
-        question: 'How is your nasal/throat condition?',
+        category: 'moisture_dryness',
+        section: 'B',
+        question: 'My lips and mouth:',
         options: [
-          { text: 'Prone to mucus, phlegm, congestion', heat: 0, cold: 1, dry: 0, moist: 1 },
-          { text: 'Dry nose/throat, minimal mucus', heat: 1, cold: 0, dry: 1, moist: 0 },
-          { text: 'Normal, no issues', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Normal', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Often dry', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Moist or excessive saliva', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Very dry and cracked', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
-
-      // Digestive Strength
       {
         id: 'un_q8',
-        category: 'digestion',
-        question: 'How is your appetite and hunger?',
+        category: 'moisture_dryness',
+        section: 'B',
+        question: 'My stool consistency:',
         options: [
-          { text: 'Strong appetite, hungry frequently', heat: 1, cold: 0, dry: 1, moist: 0 },
-          { text: 'Weak appetite, eat small amounts', heat: 0, cold: 1, dry: 0, moist: 1 },
-          { text: 'Normal, regular appetite', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Balanced', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Loose due to heat', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Sticky or mucus-like', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Hard and dry', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q9',
-        category: 'digestion',
-        question: 'What is your digestive speed?',
+        category: 'moisture_dryness',
+        section: 'B',
+        question: 'I experience mucus congestion:',
         options: [
-          { text: 'Fast digestion, frequent elimination', heat: 1, cold: 0, dry: 1, moist: 0 },
-          { text: 'Slow digestion, feel heavy after meals', heat: 0, cold: 1, dry: 0, moist: 1 },
-          { text: 'Moderate, comfortable digestion', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Rarely', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Rarely', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Frequently', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Almost never', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q10',
-        category: 'digestion',
-        question: 'How is your bowel movement?',
+        category: 'moisture_dryness',
+        section: 'B',
+        question: 'My joints:',
         options: [
-          { text: 'Loose or frequent stools', heat: 1, cold: 0, dry: 0, moist: 1 },
-          { text: 'Tends toward constipation, dry stools', heat: 0, cold: 0, dry: 1, moist: 0 },
-          { text: 'Regular, well-formed', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Flexible', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Inflamed occasionally', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Heavy or stiff', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Dry and cracking', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
 
-      // Emotional Nature
+      // SECTION C — Humor-Specific Symptoms (5 Questions, Weight: 2x)
       {
         id: 'un_q11',
-        category: 'emotional',
-        question: 'What is your typical emotional state?',
+        category: 'humor_symptoms',
+        section: 'C',
+        question: 'I tend to develop:',
         options: [
-          { text: 'Quick-tempered, passionate, intense', heat: 1, cold: 0, dry: 1, moist: 0 },
-          { text: 'Calm, slow to anger, patient', heat: 0, cold: 1, dry: 0, moist: 1 },
-          { text: 'Balanced emotional responses', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Redness or fullness', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Acidity or burning', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Cold, cough, sinus', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Dark circles or constipation', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q12',
-        category: 'emotional',
-        question: 'How do you handle stress?',
+        category: 'humor_symptoms',
+        section: 'C',
+        question: 'My emotional tendency:',
         options: [
-          { text: 'Become agitated, restless, irritable', heat: 1, cold: 0, dry: 1, moist: 0 },
-          { text: 'Become withdrawn, sad, lethargic', heat: 0, cold: 1, dry: 1, moist: 0 },
-          { text: 'Stay relatively calm and composed', heat: 0, cold: 0, dry: 0, moist: 1 }
+          { text: 'Optimistic', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Easily angered', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Lazy or calm', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Worried or melancholic', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q13',
-        category: 'emotional',
-        question: 'What is your social tendency?',
+        category: 'humor_symptoms',
+        section: 'C',
+        question: 'When sick, I usually have:',
         options: [
-          { text: 'Outgoing, cheerful, sociable', heat: 1, cold: 0, dry: 0, moist: 1 },
-          { text: 'Reserved, contemplative, introverted', heat: 0, cold: 1, dry: 1, moist: 0 },
-          { text: 'Balanced social interaction', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Fever with redness', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'High fever with dryness', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Phlegm and heaviness', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Weakness and dryness', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
-
-      // Sleep Pattern
       {
         id: 'un_q14',
-        category: 'sleep',
-        question: 'What is your sleep quality?',
+        category: 'humor_symptoms',
+        section: 'C',
+        question: 'My sleep:',
         options: [
-          { text: 'Light sleep, wake easily', heat: 1, cold: 0, dry: 1, moist: 0 },
-          { text: 'Heavy sleep, hard to wake', heat: 0, cold: 1, dry: 0, moist: 1 },
-          { text: 'Moderate, restful sleep', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Good and refreshing', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Disturbed due to heat', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Excessive and heavy', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Light and overthinking', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
         id: 'un_q15',
-        category: 'sleep',
-        question: 'How much sleep do you need?',
+        category: 'humor_symptoms',
+        section: 'C',
+        question: 'My body odor:',
         options: [
-          { text: 'Less than 7 hours, wake early naturally', heat: 1, cold: 0, dry: 1, moist: 0 },
-          { text: '8-10+ hours, love sleeping', heat: 0, cold: 1, dry: 0, moist: 1 },
-          { text: '7-8 hours, balanced', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Moderate', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Strong and sharp', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Mild', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Very little', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
+        ]
+      },
+
+      // SECTION D — Digestive & Organ Strength (5 Questions, Weight: 2x)
+      {
+        id: 'un_q16',
+        category: 'digestive_organ',
+        section: 'D',
+        question: 'After meals I feel:',
+        options: [
+          { text: 'Comfortable', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Heat or burning', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Heavy and sluggish', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Bloated and dry', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       },
       {
-        id: 'un_q16',
-        category: 'sleep',
-        question: 'How do you feel upon waking?',
+        id: 'un_q17',
+        category: 'digestive_organ',
+        section: 'D',
+        question: 'I tolerate fatty foods:',
         options: [
-          { text: 'Alert and energetic immediately', heat: 1, cold: 0, dry: 0, moist: 0 },
-          { text: 'Groggy, need time to fully wake', heat: 0, cold: 1, dry: 0, moist: 1 },
-          { text: 'Refreshed after adequate sleep', heat: 0, cold: 0, dry: 0, moist: 0 }
+          { text: 'Well', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Causes heat', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Causes heaviness', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Causes discomfort', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
+        ]
+      },
+      {
+        id: 'un_q18',
+        category: 'digestive_organ',
+        section: 'D',
+        question: 'I feel thirsty:',
+        options: [
+          { text: 'Normally', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Excessively', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Rarely', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Mildly but frequently', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
+        ]
+      },
+      {
+        id: 'un_q19',
+        category: 'digestive_organ',
+        section: 'D',
+        question: 'My urine color is usually:',
+        options: [
+          { text: 'Normal yellow', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Dark yellow', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Pale', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Scanty and dark', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
+        ]
+      },
+      {
+        id: 'un_q20',
+        category: 'digestive_organ',
+        section: 'D',
+        question: 'My mental focus:',
+        options: [
+          { text: 'Active and social', humor: 'dam', heat: 1, cold: 0, dry: 0, moist: 1 },
+          { text: 'Sharp but impatient', humor: 'safra', heat: 1, cold: 0, dry: 1, moist: 0 },
+          { text: 'Slow but calm', humor: 'balgham', heat: 0, cold: 1, dry: 0, moist: 1 },
+          { text: 'Deep but serious', humor: 'sauda', heat: 0, cold: 1, dry: 1, moist: 0 }
         ]
       }
     ]
@@ -415,199 +505,249 @@ module.exports = {
    * TCM QUESTION BANK
    * 18 questions across 5 pattern categories
    */
+  /**
+   * TCM (Traditional Chinese Medicine) QUESTION BANK
+   * 20 questions across 4 sections
+   * Section A: Cold vs Heat Pattern (Q1-Q5)
+   * Section B: Qi & Energy (Q6-Q10)
+   * Section C: Dampness & Phlegm (Q11-Q15)
+   * Section D: Liver & Emotional Pattern (Q16-Q20)
+   */
   tcm: {
     framework: 'tcm',
-    totalQuestions: 18,
+    totalQuestions: 20,
+    categories: {
+      cold_heat_pattern: { name: 'Cold vs Heat Pattern', questionIds: ['tcm_q1', 'tcm_q2', 'tcm_q3', 'tcm_q4', 'tcm_q5'] },
+      qi_energy: { name: 'Qi & Energy', questionIds: ['tcm_q6', 'tcm_q7', 'tcm_q8', 'tcm_q9', 'tcm_q10'] },
+      dampness_phlegm: { name: 'Dampness & Phlegm', questionIds: ['tcm_q11', 'tcm_q12', 'tcm_q13', 'tcm_q14', 'tcm_q15'] },
+      liver_emotional: { name: 'Liver & Emotional Pattern', questionIds: ['tcm_q16', 'tcm_q17', 'tcm_q18', 'tcm_q19', 'tcm_q20'] }
+    },
     questions: [
-      // Temperature Sensitivity
+      // SECTION A — Cold vs Heat Pattern (Q1-Q5)
       {
         id: 'tcm_q1',
-        category: 'temperature',
-        question: 'How do your hands and feet typically feel?',
+        category: 'cold_heat_pattern',
+        section: 'A',
+        question: 'My body usually feels:',
         options: [
-          { text: 'Hot palms and soles, especially at night', yin: 2, yang: 0, heat: 1, damp: 0, qi_deficiency: 0 },
-          { text: 'Cold hands and feet most of the time', yin: 0, yang: 2, heat: 0, damp: 0, qi_deficiency: 1 },
-          { text: 'Normal temperature', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Cold easily', pattern: 'cold', weight: 2 },
+          { text: 'Hot easily', pattern: 'heat', weight: 2 },
+          { text: 'Normal', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q2',
-        category: 'temperature',
-        question: 'Do you experience night sweats or afternoon low-grade fever?',
+        category: 'cold_heat_pattern',
+        section: 'A',
+        question: 'I prefer drinks that are:',
         options: [
-          { text: 'Yes, frequently', yin: 2, yang: 0, heat: 1, damp: 0, qi_deficiency: 0 },
-          { text: 'No, but I feel cold easily', yin: 0, yang: 2, heat: 0, damp: 0, qi_deficiency: 0 },
-          { text: 'Neither', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Hot', pattern: 'cold', weight: 1 },
+          { text: 'Cold', pattern: 'heat', weight: 1 },
+          { text: 'Room temperature', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q3',
-        category: 'temperature',
-        question: 'What is your face color and temperature preference?',
+        category: 'cold_heat_pattern',
+        section: 'A',
+        question: 'My face complexion tends to be:',
         options: [
-          { text: 'Red face, prefer cold drinks and air conditioning', yin: 1, yang: 0, heat: 2, damp: 0, qi_deficiency: 0 },
-          { text: 'Pale face, prefer warm drinks and environment', yin: 0, yang: 2, heat: 0, damp: 1, qi_deficiency: 1 },
-          { text: 'Normal complexion, comfortable in most temperatures', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Pale', pattern: 'cold', weight: 2 },
+          { text: 'Red', pattern: 'heat', weight: 2 },
+          { text: 'Normal', pattern: 'balanced', weight: 0 }
         ]
       },
-
-      // Fluid Retention / Dryness
       {
         id: 'tcm_q4',
-        category: 'fluid',
-        question: 'How is your mouth and throat?',
+        category: 'cold_heat_pattern',
+        section: 'A',
+        question: 'My hands and feet are:',
         options: [
-          { text: 'Dry mouth/throat, especially at night', yin: 2, yang: 0, heat: 1, damp: 0, qi_deficiency: 0 },
-          { text: 'Excessive saliva or phlegm', yin: 0, yang: 0, heat: 0, damp: 2, qi_deficiency: 1 },
-          { text: 'Normal moisture', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Cold', pattern: 'cold', weight: 2 },
+          { text: 'Warm/Hot', pattern: 'heat', weight: 2 },
+          { text: 'Neutral', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q5',
-        category: 'fluid',
-        question: 'Do you experience bloating or water retention?',
+        category: 'cold_heat_pattern',
+        section: 'A',
+        question: 'I feel better with:',
         options: [
-          { text: 'Yes, often feel heavy and bloated', yin: 0, yang: 1, heat: 0, damp: 2, qi_deficiency: 1 },
-          { text: 'No, tend toward dryness and constipation', yin: 2, yang: 0, heat: 1, damp: 0, qi_deficiency: 0 },
-          { text: 'Neither issue', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
-        ]
-      },
-      {
-        id: 'tcm_q6',
-        category: 'fluid',
-        question: 'How is your body feel and weight?',
-        options: [
-          { text: 'Heavy feeling, easy weight gain, swelling', yin: 0, yang: 1, heat: 0, damp: 2, qi_deficiency: 1 },
-          { text: 'Thin, dry skin, difficult to gain weight', yin: 2, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 },
-          { text: 'Normal weight, no heaviness', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Warm environment', pattern: 'cold', weight: 2 },
+          { text: 'Cool environment', pattern: 'heat', weight: 2 },
+          { text: 'Either', pattern: 'balanced', weight: 0 }
         ]
       },
 
-      // Energy & Fatigue
+      // SECTION B — Qi & Energy (Q6-Q10)
+      {
+        id: 'tcm_q6',
+        category: 'qi_energy',
+        section: 'B',
+        question: 'My energy level is:',
+        options: [
+          { text: 'Easily tired', pattern: 'qi_deficiency', weight: 2 },
+          { text: 'Restless and wired', pattern: 'heat', weight: 1 },
+          { text: 'Balanced', pattern: 'balanced', weight: 0 }
+        ]
+      },
       {
         id: 'tcm_q7',
-        category: 'energy',
-        question: 'How are your energy levels throughout the day?',
+        category: 'qi_energy',
+        section: 'B',
+        question: 'After meals I feel:',
         options: [
-          { text: 'Constantly tired, lack energy even with rest', yin: 0, yang: 2, heat: 0, damp: 1, qi_deficiency: 2 },
-          { text: 'Restless energy at night, tired during day', yin: 2, yang: 0, heat: 1, damp: 0, qi_deficiency: 0 },
-          { text: 'Good, consistent energy', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Heavy and bloated', pattern: 'dampness', weight: 2 },
+          { text: 'Burning or acid', pattern: 'heat', weight: 2 },
+          { text: 'Comfortable', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q8',
-        category: 'energy',
-        question: 'How is your breathing and voice?',
+        category: 'qi_energy',
+        section: 'B',
+        question: 'My voice is:',
         options: [
-          { text: 'Short of breath, weak voice, tire easily when talking', yin: 0, yang: 1, heat: 0, damp: 0, qi_deficiency: 2 },
-          { text: 'Normal breathing and voice strength', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 },
-          { text: 'Strong voice, no breathing issues', yin: 0, yang: 1, heat: 1, damp: 0, qi_deficiency: 0 }
+          { text: 'Soft or weak', pattern: 'qi_deficiency', weight: 2 },
+          { text: 'Loud and forceful', pattern: 'heat', weight: 1 },
+          { text: 'Normal', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q9',
-        category: 'energy',
-        question: 'Do you catch colds frequently?',
+        category: 'qi_energy',
+        section: 'B',
+        question: 'I sweat:',
         options: [
-          { text: 'Yes, get sick easily and take long to recover', yin: 0, yang: 1, heat: 0, damp: 1, qi_deficiency: 2 },
-          { text: 'Rarely get sick', yin: 0, yang: 1, heat: 0, damp: 0, qi_deficiency: 0 },
-          { text: 'Normal immune function', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Easily with little effort', pattern: 'qi_deficiency', weight: 2 },
+          { text: 'Excessively with heat', pattern: 'heat', weight: 2 },
+          { text: 'Normally', pattern: 'balanced', weight: 0 }
+        ]
+      },
+      {
+        id: 'tcm_q10',
+        category: 'qi_energy',
+        section: 'B',
+        question: 'My breathing feels:',
+        options: [
+          { text: 'Short or weak', pattern: 'qi_deficiency', weight: 2 },
+          { text: 'Strong but sometimes hot', pattern: 'heat', weight: 1 },
+          { text: 'Normal', pattern: 'balanced', weight: 0 }
         ]
       },
 
-      // Emotional Pattern
-      {
-        id: 'tcm_q10',
-        category: 'emotional',
-        question: 'What is your emotional tendency?',
-        options: [
-          { text: 'Anxious, restless, insomnia', yin: 2, yang: 0, heat: 1, damp: 0, qi_deficiency: 0 },
-          { text: 'Irritable, angry, impatient', yin: 0, yang: 0, heat: 2, damp: 0, qi_deficiency: 0 },
-          { text: 'Depressed, worried, overthinking', yin: 0, yang: 1, heat: 0, damp: 1, qi_deficiency: 2 }
-        ]
-      },
+      // SECTION C — Dampness & Phlegm (Q11-Q15)
       {
         id: 'tcm_q11',
-        category: 'emotional',
-        question: 'How is your mental clarity?',
+        category: 'dampness_phlegm',
+        section: 'C',
+        question: 'I experience:',
         options: [
-          { text: 'Foggy thinking, difficulty concentrating', yin: 0, yang: 1, heat: 0, damp: 2, qi_deficiency: 1 },
-          { text: 'Clear mind but restless', yin: 1, yang: 0, heat: 2, damp: 0, qi_deficiency: 0 },
-          { text: 'Good mental clarity and focus', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Frequent mucus', pattern: 'dampness', weight: 2 },
+          { text: 'Dry throat', pattern: 'heat', weight: 1 },
+          { text: 'Neither', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q12',
-        category: 'emotional',
-        question: 'How is your sleep quality?',
+        category: 'dampness_phlegm',
+        section: 'C',
+        question: 'My body feels:',
         options: [
-          { text: 'Difficulty falling asleep, wake frequently', yin: 2, yang: 0, heat: 1, damp: 0, qi_deficiency: 0 },
-          { text: 'Sleep heavily but don\'t feel rested', yin: 0, yang: 1, heat: 0, damp: 2, qi_deficiency: 1 },
-          { text: 'Sleep well and feel refreshed', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Heavy', pattern: 'dampness', weight: 2 },
+          { text: 'Dry', pattern: 'heat', weight: 1 },
+          { text: 'Balanced', pattern: 'balanced', weight: 0 }
         ]
       },
-
-      // Digestive Pattern
       {
         id: 'tcm_q13',
-        category: 'digestion',
-        question: 'What is your appetite like?',
+        category: 'dampness_phlegm',
+        section: 'C',
+        question: 'My digestion:',
         options: [
-          { text: 'Poor appetite, feel full quickly', yin: 0, yang: 1, heat: 0, damp: 1, qi_deficiency: 2 },
-          { text: 'Strong appetite, hungry soon after eating', yin: 1, yang: 0, heat: 2, damp: 0, qi_deficiency: 0 },
-          { text: 'Normal, regular appetite', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Slow with loose stool', pattern: 'dampness', weight: 2 },
+          { text: 'Fast with burning', pattern: 'heat', weight: 2 },
+          { text: 'Regular', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q14',
-        category: 'digestion',
-        question: 'How are your stools?',
+        category: 'dampness_phlegm',
+        section: 'C',
+        question: 'I gain weight:',
         options: [
-          { text: 'Loose, unformed, or frequent diarrhea', yin: 0, yang: 1, heat: 0, damp: 2, qi_deficiency: 1 },
-          { text: 'Dry, difficult to pass, constipation', yin: 2, yang: 0, heat: 2, damp: 0, qi_deficiency: 0 },
-          { text: 'Normal, regular bowel movements', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Easily', pattern: 'dampness', weight: 2 },
+          { text: 'Rarely', pattern: 'heat', weight: 1 },
+          { text: 'Moderately', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q15',
-        category: 'digestion',
-        question: 'Do you experience digestive discomfort?',
+        category: 'dampness_phlegm',
+        section: 'C',
+        question: 'I have:',
         options: [
-          { text: 'Bloating, heaviness after meals', yin: 0, yang: 1, heat: 0, damp: 2, qi_deficiency: 1 },
-          { text: 'Burning sensation, acid reflux', yin: 1, yang: 0, heat: 2, damp: 0, qi_deficiency: 0 },
-          { text: 'No significant discomfort', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Swelling or water retention', pattern: 'dampness', weight: 2 },
+          { text: 'Thirst and dryness', pattern: 'heat', weight: 2 },
+          { text: 'Neither', pattern: 'balanced', weight: 0 }
         ]
       },
 
-      // Additional Physical Signs
+      // SECTION D — Liver & Emotional Pattern (Q16-Q20)
       {
         id: 'tcm_q16',
-        category: 'physical',
-        question: 'How is your skin condition?',
+        category: 'liver_emotional',
+        section: 'D',
+        question: 'Under stress I:',
         options: [
-          { text: 'Rashes, acne, redness, inflammation', yin: 0, yang: 0, heat: 2, damp: 1, qi_deficiency: 0 },
-          { text: 'Dry, flaky, dull skin', yin: 2, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 },
-          { text: 'Healthy, clear skin', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Feel stuck or frustrated', pattern: 'qi_stagnation', weight: 2 },
+          { text: 'Explode with anger', pattern: 'heat', weight: 2 },
+          { text: 'Stay calm', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q17',
-        category: 'physical',
-        question: 'How is your urine?',
+        category: 'liver_emotional',
+        section: 'D',
+        question: 'I experience:',
         options: [
-          { text: 'Dark yellow, strong odor, burning', yin: 1, yang: 0, heat: 2, damp: 0, qi_deficiency: 0 },
-          { text: 'Clear, frequent urination', yin: 0, yang: 2, heat: 0, damp: 1, qi_deficiency: 1 },
-          { text: 'Normal color and frequency', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Mood swings', pattern: 'qi_stagnation', weight: 2 },
+          { text: 'Irritability with heat', pattern: 'heat', weight: 2 },
+          { text: 'Stable mood', pattern: 'balanced', weight: 0 }
         ]
       },
       {
         id: 'tcm_q18',
-        category: 'physical',
-        question: 'Do you have back or knee weakness?',
+        category: 'liver_emotional',
+        section: 'D',
+        question: 'My sleep:',
         options: [
-          { text: 'Yes, weak lower back and knees, cold sensation', yin: 0, yang: 2, heat: 0, damp: 0, qi_deficiency: 1 },
-          { text: 'Sometimes soreness but no weakness', yin: 1, yang: 0, heat: 0, damp: 1, qi_deficiency: 0 },
-          { text: 'No weakness or pain', yin: 0, yang: 0, heat: 0, damp: 0, qi_deficiency: 0 }
+          { text: 'Light and easily disturbed', pattern: 'qi_deficiency', weight: 2 },
+          { text: 'Disturbed by heat or vivid dreams', pattern: 'heat', weight: 2 },
+          { text: 'Restful', pattern: 'balanced', weight: 0 }
+        ]
+      },
+      {
+        id: 'tcm_q19',
+        category: 'liver_emotional',
+        section: 'D',
+        question: 'My menstrual/digestive cramps:',
+        options: [
+          { text: 'Dull and better with warmth', pattern: 'cold', weight: 2 },
+          { text: 'Sharp and worse with heat', pattern: 'heat', weight: 2 },
+          { text: 'None', pattern: 'balanced', weight: 0 }
+        ]
+      },
+      {
+        id: 'tcm_q20',
+        category: 'liver_emotional',
+        section: 'D',
+        question: 'My appetite:',
+        options: [
+          { text: 'Low', pattern: 'qi_deficiency', weight: 2 },
+          { text: 'Strong with thirst', pattern: 'heat', weight: 2 },
+          { text: 'Balanced', pattern: 'balanced', weight: 0 }
         ]
       }
     ]
@@ -615,16 +755,187 @@ module.exports = {
 
   /**
    * MODERN CLINICAL QUESTION BANK
-   * 20 questions covering clinical nutrition assessment
+   * 21 questions organized into 6 scoring domains
+   * 
+   * SECTION 1: Anthropometric & Energy Calculation (6 questions)
+   * SECTION 2: Metabolic Risk Score (3 questions)
+   * SECTION 3: Dietary Restriction Filter (2 questions)
+   * SECTION 4: Lifestyle Load Score (7 questions)
+   * SECTION 5: Digestive Function Score (1 question)
+   * SECTION 6: Goal-Based Macro Strategy (2 questions)
    */
   modern: {
     framework: 'modern',
-    totalQuestions: 20,
+    totalQuestions: 21,
+    scoringDomains: {
+      anthropometric: {
+        name: 'Anthropometric & Energy Calculation',
+        questionIds: ['age', 'gender', 'height', 'weight', 'activity_level', 'lifestyle_context'],
+        computations: {
+          bmi: 'weight / (height/100)^2',
+          bmr: 'Mifflin-St Jeor equation',
+          tdee: 'BMR × activity_multiplier',
+          weight_classification: '<18.5=Underweight, 18.5-24.9=Normal, 25-29.9=Overweight, 30+=Obese'
+        },
+        activityMultipliers: {
+          sedentary: 1.2,
+          lightly_active: 1.375,
+          moderately_active: 1.55,
+          very_active: 1.725,
+          extremely_active: 1.9
+        }
+      },
+      metabolic_risk: {
+        name: 'Metabolic Risk Score',
+        questionIds: ['medical_conditions', 'medications', 'waist_circumference'],
+        riskPoints: {
+          medical_conditions: {
+            diabetes: 3,
+            hypertension: 2,
+            heart_disease: 3,
+            kidney_disease: 3,
+            liver_disease: 2,
+            pcos: 2,
+            anemia: 1,
+            osteoporosis: 1
+          },
+          medications: {
+            diabetes_meds: 2,
+            blood_pressure_meds: 1,
+            cholesterol_meds: 1,
+            steroids: 2
+          },
+          waist_circumference: {
+            male_high_risk: 102,
+            female_high_risk: 88
+          }
+        },
+        classification: {
+          low: '0-2',
+          moderate: '3-5',
+          high: '6+'
+        }
+      },
+      dietary_restriction: {
+        name: 'Dietary Restriction Filter',
+        questionIds: ['allergies', 'dietary_preference'],
+        purpose: 'Creates hard constraints for food filtering',
+        output: ['restricted_food_groups', 'diet_type']
+      },
+      lifestyle_load: {
+        name: 'Lifestyle Load Score',
+        questionIds: ['sleep_quality', 'sleep_duration', 'stress_level', 'hydration', 'meal_frequency', 'eating_patterns'],
+        scorePoints: {
+          sleep_duration: {
+            '<5': 2,
+            '5-6': 2,
+            '6-7': 1,
+            '7-8': 0,
+            '8-9': 0,
+            '>9': 1
+          },
+          stress_level: {
+            very_low: 0,
+            low: 0,
+            moderate: 1,
+            high: 2,
+            very_high: 3
+          },
+          hydration: {
+            '<4': 2,
+            '4-6': 1,
+            '6-8': 0,
+            '8-10': 0,
+            '>10': 0
+          },
+          eating_patterns: {
+            late_night_eating: 2,
+            binge_eating: 3,
+            emotional_eating: 2,
+            irregular_timing: 1
+          }
+        },
+        classification: {
+          stable: '0-2',
+          moderate_dysregulation: '3-6',
+          high_dysregulation: '7+'
+        },
+        influences: ['inflammatory_food_penalty', 'ultra_processed_penalty']
+      },
+      digestive_function: {
+        name: 'Digestive Function Score',
+        questionIds: ['digestive_issues'],
+        scorePoints: {
+          bloating: 1,
+          gas: 1,
+          constipation: 2,
+          diarrhea: 2,
+          heartburn: 2,
+          nausea: 1
+        },
+        classification: {
+          normal: 0,
+          mild_sensitivity: '1-2',
+          moderate_dysfunction: '3-4',
+          high_instability: '5+'
+        },
+        impacts: ['high_fat_penalty', 'high_fodmap_penalty', 'fiber_adjustment']
+      },
+      goal_strategy: {
+        name: 'Goal-Based Macro Strategy',
+        questionIds: ['goals', 'supplements', 'physical_limitations'],
+        macroStrategies: {
+          weight_loss: {
+            calorie_adjustment: -0.20,
+            protein_per_kg: 1.8,
+            carb_percentage: 35,
+            fat_percentage: 25,
+            fiber_target: 'high'
+          },
+          weight_gain: {
+            calorie_adjustment: 0.15,
+            protein_per_kg: 1.6,
+            carb_percentage: 45,
+            fat_percentage: 30
+          },
+          muscle_gain: {
+            calorie_adjustment: 0.10,
+            protein_per_kg: 2.0,
+            carb_percentage: 40,
+            fat_percentage: 30
+          },
+          maintain_weight: {
+            calorie_adjustment: 0,
+            protein_per_kg: 1.4,
+            carb_percentage: 40,
+            fat_percentage: 30
+          },
+          athletic_performance: {
+            calorie_adjustment: 0.05,
+            protein_per_kg: 1.6,
+            carb_percentage: 50,
+            fat_percentage: 25
+          },
+          general_health: {
+            calorie_adjustment: 0,
+            protein_per_kg: 1.2,
+            carb_percentage: 40,
+            fat_percentage: 30
+          }
+        }
+      }
+    },
     questions: [
+      // ═══════════════════════════════════════════════════════════════
+      // SECTION 1: ANTHROPOMETRIC & ENERGY CALCULATION (6 Questions)
+      // Output: BMI, BMR, TDEE, Weight Classification
+      // ═══════════════════════════════════════════════════════════════
+      
       // Demographics
       {
         id: 'age',
         category: 'demographics',
+        section: 1,
         question: 'What is your age?',
         type: 'number',
         validation: { min: 16, max: 120 },
@@ -634,6 +945,7 @@ module.exports = {
       {
         id: 'gender',
         category: 'demographics',
+        section: 1,
         question: 'What is your biological sex?',
         type: 'select',
         options: [
@@ -646,6 +958,7 @@ module.exports = {
       {
         id: 'height',
         category: 'anthropometric',
+        section: 1,
         question: 'What is your height?',
         type: 'number',
         validation: { min: 100, max: 250 },
@@ -655,17 +968,30 @@ module.exports = {
       {
         id: 'weight',
         category: 'anthropometric',
+        section: 1,
         question: 'What is your current weight?',
         type: 'number',
         validation: { min: 30, max: 300 },
         unit: 'kg',
         required: true
       },
+      {
+        id: 'waist_circumference',
+        category: 'anthropometric',
+        section: 1,
+        question: 'What is your waist circumference? (Measure at navel level)',
+        type: 'number',
+        validation: { min: 50, max: 200 },
+        unit: 'cm',
+        required: false,
+        helpText: 'Critical for metabolic syndrome risk assessment. Measure around your waist at navel level.'
+      },
 
       // Activity Level
       {
         id: 'activity_level',
         category: 'lifestyle',
+        section: 1,
         question: 'What is your typical activity level?',
         type: 'select',
         options: [
@@ -677,11 +1003,36 @@ module.exports = {
         ],
         required: true
       },
+      
+      // Lifestyle Context
+      {
+        id: 'lifestyle_context',
+        category: 'lifestyle',
+        section: 1,
+        question: 'What best describes your typical day?',
+        type: 'select',
+        options: [
+          { value: 'sedentary_work', label: 'Mostly sitting (office work, studying)' },
+          { value: 'standing_work', label: 'Mostly standing (retail, teaching)' },
+          { value: 'physical_work', label: 'Physical labor (construction, nursing)' },
+          { value: 'mixed', label: 'Mixed activities' },
+          { value: 'retired_home', label: 'Retired/Home-based' },
+          { value: 'student', label: 'Student' }
+        ],
+        required: true
+      },
+
+      // ═══════════════════════════════════════════════════════════════
+      // SECTION 2: METABOLIC RISK SCORE (3 Questions)
+      // Output: metabolic_risk_level, risk_flags[]
+      // Classification: Low (0-2), Moderate (3-5), High (6+)
+      // ═══════════════════════════════════════════════════════════════
 
       // Medical Conditions
       {
         id: 'medical_conditions',
         category: 'medical',
+        section: 2,
         question: 'Do you have any of the following medical conditions? (Select all that apply)',
         type: 'multiselect',
         options: [
@@ -695,14 +1046,45 @@ module.exports = {
           { value: 'pcos', label: 'PCOS' },
           { value: 'osteoporosis', label: 'Osteoporosis' },
           { value: 'anemia', label: 'Anemia' },
+          { value: 'other', label: 'Other (please specify)' },
           { value: 'none', label: 'None of the above' }
         ],
+        allowCustomInput: true,
         required: true
       },
+      
+      // Medications
+      {
+        id: 'medications',
+        category: 'medical',
+        section: 2,
+        question: 'Are you currently taking any medications that might affect nutrition? (Select all that apply)',
+        type: 'multiselect',
+        options: [
+          { value: 'diabetes_meds', label: 'Diabetes medications' },
+          { value: 'blood_pressure_meds', label: 'Blood pressure medications' },
+          { value: 'cholesterol_meds', label: 'Cholesterol medications' },
+          { value: 'thyroid_meds', label: 'Thyroid medications' },
+          { value: 'steroids', label: 'Steroids/Corticosteroids' },
+          { value: 'antidepressants', label: 'Antidepressants' },
+          { value: 'other', label: 'Other (please specify)' },
+          { value: 'none', label: 'None' },
+          { value: 'prefer_not_say', label: 'Prefer not to say' }
+        ],
+        allowCustomInput: true,
+        required: false
+      },
 
+      // ═══════════════════════════════════════════════════════════════
+      // SECTION 3: DIETARY RESTRICTION FILTER (2 Questions)
+      // Output: restricted_food_groups[], diet_type
+      // Purpose: Creates hard constraints for food filtering
+      // ═══════════════════════════════════════════════════════════════
+      
       // Food Allergies
       {
         id: 'allergies',
+        section: 3,
         category: 'dietary',
         question: 'Do you have any food allergies or intolerances? (Select all that apply)',
         type: 'multiselect',
@@ -715,8 +1097,10 @@ module.exports = {
           { value: 'soy', label: 'Soy' },
           { value: 'eggs', label: 'Eggs' },
           { value: 'fish', label: 'Fish' },
+          { value: 'other', label: 'Other (please specify)' },
           { value: 'none', label: 'None' }
         ],
+        allowCustomInput: true,
         required: true
       },
 
@@ -724,6 +1108,7 @@ module.exports = {
       {
         id: 'dietary_preference',
         category: 'dietary',
+        section: 3,
         question: 'What is your dietary preference?',
         type: 'select',
         options: [
@@ -735,35 +1120,25 @@ module.exports = {
           { value: 'low_carb', label: 'Low Carb' },
           { value: 'high_protein', label: 'High Protein' },
           { value: 'mediterranean', label: 'Mediterranean' },
-          { value: 'paleo', label: 'Paleo' }
+          { value: 'paleo', label: 'Paleo' },
+          { value: 'other', label: 'Other (please specify)' }
         ],
+        allowCustomInput: true,
         required: true
       },
 
-      // Health Goals
-      {
-        id: 'goals',
-        category: 'goals',
-        question: 'What are your primary health/nutrition goals? (Select all that apply)',
-        type: 'multiselect',
-        options: [
-          { value: 'weight_loss', label: 'Weight/Fat Loss' },
-          { value: 'weight_gain', label: 'Weight/Mass Gain' },
-          { value: 'muscle_gain', label: 'Muscle Building' },
-          { value: 'maintain_weight', label: 'Maintain Current Weight' },
-          { value: 'improve_energy', label: 'Improve Energy Levels' },
-          { value: 'better_digestion', label: 'Better Digestion' },
-          { value: 'manage_condition', label: 'Manage Medical Condition' },
-          { value: 'athletic_performance', label: 'Athletic Performance' },
-          { value: 'general_health', label: 'General Health & Wellness' }
-        ],
-        required: true
-      },
-
+      // ═══════════════════════════════════════════════════════════════
+      // SECTION 4: LIFESTYLE LOAD SCORE (7 Questions)
+      // Output: lifestyle_load_score, classification
+      // Classification: Stable (0-2), Moderate (3-6), High (7+)
+      // Influences: Inflammatory food penalty, Ultra-processed penalty
+      // ═══════════════════════════════════════════════════════════════
+      
       // Sleep Quality
       {
         id: 'sleep_quality',
         category: 'lifestyle',
+        section: 4,
         question: 'How would you rate your sleep quality?',
         type: 'select',
         options: [
@@ -780,6 +1155,7 @@ module.exports = {
       {
         id: 'sleep_duration',
         category: 'lifestyle',
+        section: 4,
         question: 'How many hours of sleep do you typically get per night?',
         type: 'select',
         options: [
@@ -797,6 +1173,7 @@ module.exports = {
       {
         id: 'stress_level',
         category: 'lifestyle',
+        section: 4,
         question: 'How would you rate your current stress level?',
         type: 'select',
         options: [
@@ -813,6 +1190,7 @@ module.exports = {
       {
         id: 'hydration',
         category: 'lifestyle',
+        section: 4,
         question: 'How many glasses (250ml) of water do you drink per day?',
         type: 'select',
         options: [
@@ -829,6 +1207,7 @@ module.exports = {
       {
         id: 'meal_frequency',
         category: 'eating_habits',
+        section: 4,
         question: 'How many meals do you typically eat per day?',
         type: 'select',
         options: [
@@ -844,6 +1223,7 @@ module.exports = {
       {
         id: 'eating_patterns',
         category: 'eating_habits',
+        section: 4,
         question: 'Do you experience any of these eating patterns? (Select all that apply)',
         type: 'multiselect',
         options: [
@@ -857,9 +1237,17 @@ module.exports = {
         required: true
       },
 
+      // ═══════════════════════════════════════════════════════════════
+      // SECTION 5: DIGESTIVE FUNCTION SCORE (1 Question)
+      // Output: digestive_score, classification
+      // Classification: Normal (0), Mild (1-2), Moderate (3-4), High (5+)
+      // Impacts: High-fat penalty, High-FODMAP penalty, Fiber adjustment
+      // ═══════════════════════════════════════════════════════════════
+      
       // Digestion
       {
         id: 'digestive_issues',
+        section: 5,
         category: 'digestion',
         question: 'Do you experience any digestive issues? (Select all that apply)',
         type: 'multiselect',
@@ -875,10 +1263,40 @@ module.exports = {
         required: true
       },
 
+      // ═══════════════════════════════════════════════════════════════
+      // SECTION 6: GOAL-BASED MACRO STRATEGY (3 Questions)
+      // Output: calorie_target, macro_targets, supplement_context
+      // Maps goals to specific calorie adjustments and macro ratios
+      // ═══════════════════════════════════════════════════════════════
+      
+      // Health Goals
+      {
+        id: 'goals',
+        section: 6,
+        category: 'goals',
+        question: 'What are your primary health/nutrition goals? (Select all that apply)',
+        type: 'multiselect',
+        options: [
+          { value: 'weight_loss', label: 'Weight/Fat Loss' },
+          { value: 'weight_gain', label: 'Weight/Mass Gain' },
+          { value: 'muscle_gain', label: 'Muscle Building' },
+          { value: 'maintain_weight', label: 'Maintain Current Weight' },
+          { value: 'improve_energy', label: 'Improve Energy Levels' },
+          { value: 'better_digestion', label: 'Better Digestion' },
+          { value: 'manage_condition', label: 'Manage Medical Condition' },
+          { value: 'athletic_performance', label: 'Athletic Performance' },
+          { value: 'general_health', label: 'General Health & Wellness' },
+          { value: 'other', label: 'Other (please specify)' }
+        ],
+        allowCustomInput: true,
+        required: true
+      },
+
       // Supplements
       {
         id: 'supplements',
         category: 'supplements',
+        section: 6,
         question: 'Do you currently take any supplements? (Select all that apply)',
         type: 'multiselect',
         options: [
@@ -890,8 +1308,10 @@ module.exports = {
           { value: 'iron', label: 'Iron' },
           { value: 'calcium', label: 'Calcium' },
           { value: 'b_vitamins', label: 'B-Vitamins' },
+          { value: 'other', label: 'Other (please specify)' },
           { value: 'none', label: 'None' }
         ],
+        allowCustomInput: true,
         required: false
       },
 
@@ -899,6 +1319,7 @@ module.exports = {
       {
         id: 'physical_limitations',
         category: 'physical',
+        section: 6,
         question: 'Do you have any physical limitations that affect your activity? (Select all that apply)',
         type: 'multiselect',
         options: [
@@ -907,45 +1328,11 @@ module.exports = {
           { value: 'mobility_issues', label: 'Mobility issues' },
           { value: 'chronic_fatigue', label: 'Chronic fatigue' },
           { value: 'recent_surgery', label: 'Recent surgery/injury' },
+          { value: 'other', label: 'Other (please specify)' },
           { value: 'none', label: 'None' }
         ],
+        allowCustomInput: true,
         required: false
-      },
-
-      // Medications
-      {
-        id: 'medications',
-        category: 'medical',
-        question: 'Are you currently taking any medications that might affect nutrition? (Select all that apply)',
-        type: 'multiselect',
-        options: [
-          { value: 'diabetes_meds', label: 'Diabetes medications' },
-          { value: 'blood_pressure_meds', label: 'Blood pressure medications' },
-          { value: 'cholesterol_meds', label: 'Cholesterol medications' },
-          { value: 'thyroid_meds', label: 'Thyroid medications' },
-          { value: 'steroids', label: 'Steroids/Corticosteroids' },
-          { value: 'antidepressants', label: 'Antidepressants' },
-          { value: 'none', label: 'None' },
-          { value: 'prefer_not_say', label: 'Prefer not to say' }
-        ],
-        required: false
-      },
-
-      // Lifestyle Context
-      {
-        id: 'lifestyle_context',
-        category: 'lifestyle',
-        question: 'What best describes your typical day?',
-        type: 'select',
-        options: [
-          { value: 'sedentary_work', label: 'Mostly sitting (office work, studying)' },
-          { value: 'standing_work', label: 'Mostly standing (retail, teaching)' },
-          { value: 'physical_work', label: 'Physical labor (construction, nursing)' },
-          { value: 'mixed', label: 'Mixed activities' },
-          { value: 'retired_home', label: 'Retired/Home-based' },
-          { value: 'student', label: 'Student' }
-        ],
-        required: true
       }
     ]
   }

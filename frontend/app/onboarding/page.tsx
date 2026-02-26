@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import FrameworkSelection from '@/components/assessment/FrameworkSelection';
@@ -20,11 +20,12 @@ export default function OnboardingPage() {
   const [selectedFramework, setSelectedFramework] = useState<string | null>(null);
   const [assessmentResults, setAssessmentResults] = useState<any>(null);
 
-  // Redirect if already completed assessment
-  if (user?.hasCompletedAssessment) {
-    router.push('/dashboard');
-    return null;
-  }
+  // Redirect if already completed assessment (but not when showing results)
+  useEffect(() => {
+    if (user?.hasCompletedAssessment && currentStep !== 'results') {
+      router.push('/dashboard');
+    }
+  }, [user?.hasCompletedAssessment, currentStep, router]);
 
   const handleFrameworkSelect = (framework: string) => {
     setSelectedFramework(framework);

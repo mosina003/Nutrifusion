@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const Assessment = require('../models/Assessment');
+const DietPlan = require('../models/DietPlan');
 const User = require('../models/User');
 const AssessmentEngine = require('../services/assessment');
 const questionBanks = require('../services/assessment/questionBanks');
+const ayurvedaDietPlanService = require('../services/intelligence/diet/ayurvedaDietPlanService');
 
 /**
  * @route   GET /api/assessments/frameworks
@@ -118,12 +120,62 @@ router.post('/submit', protect, async (req, res) => {
 
       await assessment.save();
 
+      // Generate and save diet plan to DietPlan collection
+      let dietPlanId = null;
+      if (framework === 'ayurveda' && result.scores) {
+        try {
+          const dietPlanData = await ayurvedaDietPlanService.generateDietPlan(
+            result.scores,
+            {} // No special preferences
+          );
+          console.log('✅ Diet plan generated successfully');
+
+          // Convert to DietPlan schema
+          const meals = convertSevenDayPlanToMeals(dietPlanData['7_day_plan']);
+          
+          const dietPlan = new DietPlan({
+            userId,
+            planName: `Ayurveda Auto-Generated Plan`,
+            planType: 'ayurveda',
+            meals: meals,
+            rulesApplied: [{
+              framework: 'ayurveda',
+              details: {
+                reasoning: dietPlanData.reasoning_summary || 'Auto-generated from assessment',
+                topFoods: dietPlanData.top_ranked_foods || [],
+                avoidFoods: dietPlanData.avoidFoods || [],
+                sourceAssessmentId: assessment._id
+              }
+            }],
+            status: 'Active',
+            createdBy: userId,
+            createdByModel: 'System',
+            validFrom: new Date(),
+            validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            metadata: {
+              sourceAssessmentId: assessment._id,
+              generatedAt: new Date()
+            }
+          });
+
+          await dietPlan.save();
+        dietPlanId: dietPlanId,
+          dietPlanId = dietPlan._id;
+          console.log('✅ Diet plan saved to DietPlan collection:', dietPlanId);
+        } catch (dietPlanError) {
+          console.error('⚠️  Diet plan generation/save failed:', dietPlanError.message);
+          // Continue without diet plan - non-critical error
+        }
+      }
+
       // Mark user as having completed assessment
       const updatedUser = await User.findByIdAndUpdate(
         userId, 
         {
           hasCompletedAssessment: true,
-          preferredMedicalFramework: framework
+          preferredMedicalFramework: framework,
+          // Clear LLM cache so new recommendations are generated for new assessment
+          llmCache: null
         },
         { new: true } // Return updated document
       );
@@ -131,7 +183,8 @@ router.post('/submit', protect, async (req, res) => {
       console.log('✅ User assessment status updated:', {
         userId,
         hasCompletedAssessment: updatedUser.hasCompletedAssessment,
-        preferredMedicalFramework: updatedUser.preferredMedicalFramework
+        preferredMedicalFramework: updatedUser.preferredMedicalFramework,
+        llmCacheCleared: true
       });
 
       res.json({
@@ -199,40 +252,74 @@ router.get('/user/:userId?', protect, async (req, res) => {
 });
 
 /**
- * @route   GET /api/assessments/:assessmentId
- * @desc    Get detailed assessment by ID
+ * @route   GET /api/assessments/diet-plan/current
+ * @desc    Get current user's diet plan from DietPlan collection
  * @access  Private
  */
-router.get('/:assessmentId', protect, async (req, res) => {
+router.get('/diet-plan/current', protect, async (req, res) => {
   try {
-    const { assessmentId } = req.params;
-    
-    const assessment = await Assessment.findById(assessmentId);
+    const userId = req.userId;
+
+    // Find active Ayurveda assessment for health profile
+    const assessment = await Assessment.findOne({ 
+      userId, 
+      framework: 'ayurveda',
+      isActive: true 
+    }).sort({ completedAt: -1 });
 
     if (!assessment) {
       return res.status(404).json({
         success: false,
-        error: 'Assessment not found'
+        error: 'No active Ayurveda assessment found. Please complete an assessment first.'
       });
     }
 
-    // Authorization check
-    if (assessment.userId.toString() !== req.userId && !req.userRole?.includes('practitioner')) {
-      return res.status(403).json({
+    // Find active diet plan from DietPlan collection
+    const dietPlan = await DietPlan.findOne({
+      userId,
+      status: 'Active',
+      planType: 'ayurveda',
+      validFrom: { $lte: new Date() },
+      validTo: { $gte: new Date() }
+    }).sort({ createdAt: -1 });
+
+    if (!dietPlan) {
+      return res.status(404).json({
         success: false,
-        error: 'Not authorized to view this assessment'
+        error: 'No active diet plan found. Please complete an assessment to generate one.'
       });
     }
+
+    // Convert DietPlan format back to 7_day_plan format for dashboard compatibility
+    const sevenDayPlan = convertMealsToSevenDayPlan(dietPlan.meals);
+    
+    const response = {
+      '7_day_plan': sevenDayPlan,
+      top_ranked_foods: dietPlan.rulesApplied[0]?.details?.topFoods || [],
+      reasoning_summary: dietPlan.rulesApplied[0]?.details?.reasoning || 'Auto-generated plan',
+      avoidFoods: dietPlan.rulesApplied[0]?.details?.avoidFoods || []
+    };
 
     res.json({
       success: true,
-      assessment
+      dietPlan: response,
+      healthProfile: {
+        prakriti: assessment.scores.prakriti,
+        vikriti: assessment.scores.vikriti,
+        agni: assessment.scores.agni
+      },
+      metadata: {
+        dietPlanId: dietPlan._id,
+        validFrom: dietPlan.validFrom,
+        validTo: dietPlan.validTo
+      }
     });
+    
   } catch (error) {
-    console.error('Error fetching assessment:', error);
+    console.error('Error fetching diet plan:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch assessment'
+      error: 'Failed to fetch diet plan'
     });
   }
 });
@@ -270,6 +357,45 @@ router.get('/active/:framework?', protect, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch active assessment'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/assessments/:assessmentId
+ * @desc    Get detailed assessment by ID
+ * @access  Private
+ */
+router.get('/:assessmentId', protect, async (req, res) => {
+  try {
+    const { assessmentId } = req.params;
+    
+    const assessment = await Assessment.findById(assessmentId);
+
+    if (!assessment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Assessment not found'
+      });
+    }
+
+    // Authorization check
+    if (assessment.userId.toString() !== req.userId && !req.userRole?.includes('practitioner')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized to view this assessment'
+      });
+    }
+
+    res.json({
+      success: true,
+      assessment
+    });
+  } catch (error) {
+    console.error('Error fetching assessment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch assessment'
     });
   }
 });
@@ -389,5 +515,90 @@ router.get('/stats/summary', protect, async (req, res) => {
     });
   }
 });
+
+/**
+ * Helper function: Convert 7_day_plan format to meals array for DietPlan schema
+ */
+function convertSevenDayPlanToMeals(sevenDayPlan) {
+  const meals = [];
+  
+  if (!sevenDayPlan) {
+    return meals;
+  }
+
+  for (let day = 1; day <= 7; day++) {
+    const dayKey = `day_${day}`;
+    const dayData = sevenDayPlan[dayKey];
+    
+    if (!dayData) continue;
+
+    // Breakfast
+    if (dayData.breakfast && dayData.breakfast.length > 0) {
+      meals.push({
+        day: day,
+        mealType: 'Breakfast',
+        foods: dayData.breakfast,
+        timing: '7:00 AM - 8:00 AM',
+        notes: 'Light, easy to digest'
+      });
+    }
+
+    // Lunch
+    if (dayData.lunch && dayData.lunch.length > 0) {
+      meals.push({
+        day: day,
+        mealType: 'Lunch',
+        foods: dayData.lunch,
+        timing: '12:00 PM - 1:00 PM',
+        notes: 'Main meal of the day'
+      });
+    }
+
+    // Dinner
+    if (dayData.dinner && dayData.dinner.length > 0) {
+      meals.push({
+        day: day,
+        mealType: 'Dinner',
+        foods: dayData.dinner,
+        timing: '6:00 PM - 7:00 PM',
+        notes: 'Light, early meal'
+      });
+    }
+  }
+
+  return meals;
+}
+
+/**
+ * Helper function: Convert meals array back to 7_day_plan format for dashboard
+ */
+function convertMealsToSevenDayPlan(meals) {
+  const sevenDayPlan = {};
+  
+  if (!meals || meals.length === 0) {
+    return sevenDayPlan;
+  }
+
+  // Initialize all 7 days
+  for (let day = 1; day <= 7; day++) {
+    sevenDayPlan[`day_${day}`] = {
+      breakfast: [],
+      lunch: [],
+      dinner: []
+    };
+  }
+
+  // Fill in meals
+  meals.forEach(meal => {
+    const dayKey = `day_${meal.day}`;
+    const mealType = meal.mealType.toLowerCase();
+    
+    if (sevenDayPlan[dayKey] && meal.foods) {
+      sevenDayPlan[dayKey][mealType] = meal.foods;
+    }
+  });
+
+  return sevenDayPlan;
+}
 
 module.exports = router;

@@ -5,7 +5,6 @@
 
 const unaniDietEngine = require('./unaniDietEngine');
 const unaniMealPlan = require('./unaniMealPlan');
-const Food = require('../../../models/Food');
 
 class UnaniDietPlanService {
   /**
@@ -21,17 +20,10 @@ class UnaniDietPlanService {
         throw new Error('Invalid user assessment data');
       }
 
-      // Fetch all foods from database
-      const foods = await Food.find({ verified: true }).lean();
+      console.log('📊 Scoring Unani foods from JSON file...');
 
-      if (foods.length === 0) {
-        throw new Error('No foods available in database');
-      }
-
-      console.log(`📊 Scoring ${foods.length} foods for Unani diet plan...`);
-
-      // Score and rank all foods
-      const rankedFoods = unaniDietEngine.scoreAllFoods(foods, userAssessment);
+      // Score and rank all foods (will load from JSON)
+      const rankedFoods = unaniDietEngine.scoreAllFoods(null, userAssessment);
 
       console.log(`✅ Ranked foods: ${rankedFoods.highly_suitable.length} highly suitable, ${rankedFoods.moderately_suitable.length} moderately suitable, ${rankedFoods.avoid.length} to avoid`);
 

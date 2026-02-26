@@ -146,10 +146,10 @@ export default function FrameworkSelection({ onSelectFramework, selectedFramewor
               <CardContent className="pt-0">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    {framework.id === 'ayurveda' && '18 questions • 5 categories'}
-                    {framework.id === 'unani' && '16 questions • 5 categories'}
-                    {framework.id === 'tcm' && '18 questions • 5 categories'}
-                    {framework.id === 'modern' && '20 questions • Clinical assessment'}
+                    {framework.id === 'ayurveda' && '18 questions • 3 categories'}
+                    {framework.id === 'unani' && '20 questions • 4 categories'}
+                    {framework.id === 'tcm' && '20 questions • 4 categories'}
+                    {framework.id === 'modern' && '21 questions • Clinical assessment'}
                   </span>
                   <Button
                     variant={isSelected ? 'default' : 'outline'}

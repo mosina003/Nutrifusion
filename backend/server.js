@@ -1,7 +1,14 @@
+// Load environment variables FIRST before anything else
+require('dotenv').config();
+console.log('🔧 Environment loaded - GROQ_API_KEY present:', !!process.env.GROQ_API_KEY);
+if (process.env.GROQ_API_KEY) {
+  console.log('🔑 GROQ_API_KEY starts with:', process.env.GROQ_API_KEY.substring(0, 7));
+  console.log('🔑 GROQ_API_KEY length:', process.env.GROQ_API_KEY.length);
+}
+
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
-require('dotenv').config();
 
 // Load all models
 require('./models');
@@ -26,6 +33,7 @@ const recipeRoutes = require('./routes/recipes');
 const dietPlanRoutes = require('./routes/dietPlans');
 const recommendationRoutes = require('./routes/recommendations');
 const assessmentRoutes = require('./routes/assessments');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Basic route
 app.get('/', (req, res) => {
@@ -42,7 +50,8 @@ app.get('/', (req, res) => {
       recipes: '/api/recipes',
       dietPlans: '/api/diet-plans',
       recommendations: '/api/recommendations',
-      assessments: '/api/assessments'
+      assessments: '/api/assessments',
+      dashboard: '/api/dashboard'
     }
   });
 });
@@ -66,6 +75,7 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/diet-plans', dietPlanRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/assessments', assessmentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

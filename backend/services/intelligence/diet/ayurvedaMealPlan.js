@@ -40,12 +40,15 @@ const areIncompatible = (category1, category2) => {
  * - Avoid heavy proteins
  */
 const generateBreakfast = (categorizedFoods, agni, usedIngredients, dayNumber) => {
-  const { highly_recommended } = categorizedFoods;
+  const { highly_recommended, moderate } = categorizedFoods;
+  
+  // Use both highly_recommended and moderate for more variety
+  const allBreakfastFoods = [...highly_recommended, ...moderate];
   
   // Breakfast categories: Grain, Fruit, Dairy, Beverage
   const breakfastCategories = ['Grain', 'Fruit', 'Dairy', 'Beverage'];
   
-  const breakfastFoods = highly_recommended.filter(f => 
+  const breakfastFoods = allBreakfastFoods.filter(f => 
     breakfastCategories.includes(f.food.category) &&
     (!f.ayurveda_data.guna || !f.ayurveda_data.guna.includes('Heavy'))
   );
@@ -56,20 +59,19 @@ const generateBreakfast = (categorizedFoods, agni, usedIngredients, dayNumber) =
     foods: []
   };
   
-  // Select 2-3 light foods
-  const grain = breakfastFoods.find(f => 
+  // Select 2-3 light foods with more variety
+  const availableGrains = breakfastFoods.filter(f => 
     f.food.category === 'Grain' && 
     !usedIngredients.grains.has(f.food.name)
   );
   
-  const fruit = breakfastFoods.find(f => 
-    f.food.category === 'Fruit' && 
-    dayNumber % 2 === 0 // Alternate fruit days
-  );
+  const grain = availableGrains[dayNumber % availableGrains.length] || availableGrains[0];
   
-  const beverage = breakfastFoods.find(f => 
-    f.food.category === 'Beverage'
-  );
+  const availableFruits = breakfastFoods.filter(f => f.food.category === 'Fruit');
+  const fruit = availableFruits[(dayNumber - 1) % availableFruits.length];
+  
+  const availableBeverages = breakfastFoods.filter(f => f.food.category === 'Beverage');
+  const beverage = availableBeverages[(dayNumber - 1) % availableBeverages.length];
   
   if (grain) {
     meal.foods.push({
@@ -117,39 +119,58 @@ const generateLunch = (categorizedFoods, dominantDosha, usedIngredients, dayNumb
     foods: []
   };
   
-  // 1. Grain base
-  const grain = allFoods.find(f => 
+  // 1. Grain base - select from available unused grains
+  const availableGrains = allFoods.filter(f => 
     f.food.category === 'Grain' && 
     !usedIngredients.grains.has(f.food.name)
   );
+  const grain = availableGrains[(dayNumber - 1) % availableGrains.length] || availableGrains[0];
   
   // 2. Protein (Legume, Dairy, or light Meat based on dosha)
-  let protein;
+  let availableProteins = [];
   if (dominantDosha === 'pitta') {
     // Pitta: avoid meat, prefer legumes/dairy
-    protein = allFoods.find(f => 
+    availableProteins = allFoods.filter(f => 
       (f.food.category === 'Legume' || f.food.category === 'Dairy') &&
       !usedIngredients.proteins.has(f.food.name)
     );
   } else if (dominantDosha === 'kapha') {
     // Kapha: prefer legumes, avoid dairy
-    protein = allFoods.find(f => 
+    availableProteins = allFoods.filter(f => 
       f.food.category === 'Legume' &&
       !usedIngredients.proteins.has(f.food.name)
     );
   } else {
     // Vata: can have any protein
-    protein = allFoods.find(f => 
+    availableProteins = allFoods.filter(f => 
       ['Legume', 'Dairy', 'Meat', 'Nut'].includes(f.food.category) &&
       !usedIngredients.proteins.has(f.food.name)
     );
   }
+  const protein = availableProteins[(dayNumber - 1) % availableProteins.length] || availableProteins[0];
   
-  // 3. Vegetables (2 types)
-  const vegetables = allFoods.filter(f => 
+  // 3. Vegetables (2 types) - ensure variety and NO DUPLICATES
+  const availableVegetables = allFoods.filter(f => 
     f.food.category === 'Vegetable' &&
     !usedIngredients.vegetables.has(f.food.name)
-  ).slice(0, 2);
+  );
+  
+  // Select 2 DIFFERENT vegetables
+  const vegetables = [];
+  if (availableVegetables.length > 0) {
+    const firstVegIndex = (dayNumber * 2 - 2) % availableVegetables.length;
+    vegetables.push(availableVegetables[firstVegIndex]);
+    
+    // Select second vegetable that's different from the first
+    if (availableVegetables.length > 1) {
+      let secondVegIndex = (dayNumber * 2 - 1) % availableVegetables.length;
+      // If same as first, pick the next one
+      if (secondVegIndex === firstVegIndex) {
+        secondVegIndex = (firstVegIndex + 1) % availableVegetables.length;
+      }
+      vegetables.push(availableVegetables[secondVegIndex]);
+    }
+  }
   
   // 4. Oil/Spice for cooking
   const oil = allFoods.find(f => f.food.category === 'Oil');
@@ -209,8 +230,11 @@ const generateLunch = (categorizedFoods, dominantDosha, usedIngredients, dayNumb
  * - Warm, cooked foods
  * - Avoid heavy proteins and raw foods
  */
-const generateDinner = (categorizedFoods, dominantDosha, agni, usedIngredients) => {
-  const { highly_recommended } = categorizedFoods;
+const generateDinner = (categorizedFoods, dominantDosha, agni, usedIngredients, dayNumber) => {
+  const { highly_recommended, moderate } = categorizedFoods;
+  
+  // Use both tiers for more variety
+  const allLightFoods = [...highly_recommended, ...moderate];
   
   const meal = {
     meal_type: 'Dinner',
@@ -219,22 +243,40 @@ const generateDinner = (categorizedFoods, dominantDosha, agni, usedIngredients) 
   };
   
   // Light dinner: Soup, cooked vegetables, light grain
-  const lightFoods = highly_recommended.filter(f => 
+  const lightFoods = allLightFoods.filter(f => 
     ['Vegetable', 'Grain', 'Spice'].includes(f.food.category) &&
     (!f.ayurveda_data.guna || !f.ayurveda_data.guna.includes('Heavy'))
   );
   
-  // Light grain or nothing
-  const grain = lightFoods.find(f => 
+  // Light grain or nothing - use different grains if available
+  const availableGrains = lightFoods.filter(f => 
     f.food.category === 'Grain' &&
     !usedIngredients.grains.has(f.food.name)
   );
+  const grain = availableGrains[(dayNumber - 1) % availableGrains.length] || availableGrains[0];
   
-  // Vegetables (1-2 types, cooked)
-  const vegetables = lightFoods.filter(f => 
+  // Vegetables (1-2 types, cooked) - ensure variety and NO DUPLICATES
+  const availableVegetables = lightFoods.filter(f => 
     f.food.category === 'Vegetable' &&
     !usedIngredients.vegetables.has(f.food.name)
-  ).slice(0, 2);
+  );
+  
+  // Select 2 DIFFERENT vegetables
+  const vegetables = [];
+  if (availableVegetables.length > 0) {
+    const firstVegIndex = (dayNumber * 3 - 3) % availableVegetables.length;
+    vegetables.push(availableVegetables[firstVegIndex]);
+    
+    // Select second vegetable that's different from the first
+    if (availableVegetables.length > 1) {
+      let secondVegIndex = (dayNumber * 3 - 2) % availableVegetables.length;
+      // If same as first, pick the next one
+      if (secondVegIndex === firstVegIndex) {
+        secondVegIndex = (firstVegIndex + 1) % availableVegetables.length;
+      }
+      vegetables.push(availableVegetables[secondVegIndex]);
+    }
+  }
   
   if (grain && agni !== 'Slow') {
     meal.foods.push({
@@ -287,32 +329,19 @@ const generateWeeklyPlan = (assessmentResult, categorizedFoods) => {
   };
   
   for (let day = 1; day <= 7; day++) {
-    // Reset daily usage tracking (but keep weekly limits)
-    const dayUsage = {
-      grains: new Set(weeklyUsage.grains),
-      proteins: new Set(weeklyUsage.proteins),
-      vegetables: new Set(weeklyUsage.vegetables)
-    };
-    
-    // Clear weekly sets every 3 days for variety
-    if (day % 3 === 0) {
-      weeklyUsage.grains.clear();
-      weeklyUsage.proteins.clear();
-    }
-    if (day % 2 === 0) {
-      weeklyUsage.vegetables.clear();
-    }
+    // Use the weekly tracking directly - no resetting for true 7-day variety
+    const dayUsage = weeklyUsage;
     
     const dayPlan = {
       day: day,
-      day_name: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day % 7],
+      day_name: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][(day - 1) % 7],
       meals: []
     };
     
-    // Generate meals
+    // Generate meals with unique ingredients across all 7 days
     dayPlan.meals.push(generateBreakfast(categorizedFoods, agni, dayUsage, day));
     dayPlan.meals.push(generateLunch(categorizedFoods, dominant_dosha, dayUsage, day));
-    dayPlan.meals.push(generateDinner(categorizedFoods, dominant_dosha, agni, dayUsage));
+    dayPlan.meals.push(generateDinner(categorizedFoods, dominant_dosha, agni, dayUsage, day));
     
     // Add general guidelines
     dayPlan.guidelines = [

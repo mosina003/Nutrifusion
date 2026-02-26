@@ -57,22 +57,22 @@ export default function AssessmentResults({ results, onStartNew }: AssessmentRes
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-green-600" />
-            Your Dosha Constitution
+            Your Dosha Constitution (Prakriti)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-lg font-semibold">Primary Dosha:</span>
+              <span className="text-lg font-semibold">Constitution Type:</span>
               <Badge className="text-lg px-4 py-1 bg-green-600">
-                {scores.primary_dosha.charAt(0).toUpperCase() + scores.primary_dosha.slice(1)}
+                {scores.prakriti?.dosha_type || 'Not Available'}
               </Badge>
             </div>
-            {scores.secondary_dosha && (
+            {scores.prakriti?.secondary && (
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold">Secondary Dosha:</span>
                 <Badge variant="outline" className="text-lg px-4 py-1">
-                  {scores.secondary_dosha.charAt(0).toUpperCase() + scores.secondary_dosha.slice(1)}
+                  {scores.prakriti.secondary.charAt(0).toUpperCase() + scores.prakriti.secondary.slice(1)}
                 </Badge>
               </div>
             )}
@@ -83,33 +83,87 @@ export default function AssessmentResults({ results, onStartNew }: AssessmentRes
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center space-y-1">
               <p className="text-sm text-muted-foreground">Vata</p>
-              <p className="text-2xl font-bold text-green-600">{scores.vata_percentage}%</p>
+              <p className="text-2xl font-bold text-green-600">{scores.prakriti?.percentages?.vata || 0}%</p>
             </div>
             <div className="text-center space-y-1">
               <p className="text-sm text-muted-foreground">Pitta</p>
-              <p className="text-2xl font-bold text-orange-600">{scores.pitta_percentage}%</p>
+              <p className="text-2xl font-bold text-orange-600">{scores.prakriti?.percentages?.pitta || 0}%</p>
             </div>
             <div className="text-center space-y-1">
               <p className="text-sm text-muted-foreground">Kapha</p>
-              <p className="text-2xl font-bold text-blue-600">{scores.kapha_percentage}%</p>
+              <p className="text-2xl font-bold text-blue-600">{scores.prakriti?.percentages?.kapha || 0}%</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {healthProfile.dietary_guidelines && (
+      {scores.vikriti && (
+        <Card className="bg-amber-50/50 border-amber-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-amber-600" />
+              Current State (Vikriti)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-semibold">Elevated Dosha:</span>
+              <Badge className="text-lg px-4 py-1 bg-amber-600">
+                {scores.vikriti.dominant?.charAt(0).toUpperCase() + scores.vikriti.dominant?.slice(1)}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">{scores.vikriti.description}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {scores.agni && (
+        <Card className="bg-blue-50/50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-blue-600" />
+              Digestive Fire (Agni)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-semibold">Type:</span>
+              <Badge className="text-lg px-4 py-1 bg-blue-600">
+                {scores.agni.name}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-700 mb-1">{scores.agni.description}</p>
+              <p className="text-sm text-muted-foreground">{scores.agni.explanation}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {scores.interpretation && (
         <Card>
           <CardHeader>
-            <CardTitle>Dietary Guidelines</CardTitle>
+            <CardTitle>Summary & Recommendations</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h4 className="font-semibold text-green-600 mb-2">Favor:</h4>
-              <p className="text-muted-foreground">{healthProfile.dietary_guidelines.favor?.join(', ')}</p>
+              <h4 className="font-semibold text-green-600 mb-2">Constitution Overview:</h4>
+              <p className="text-muted-foreground">{scores.interpretation.constitution_overview?.description}</p>
             </div>
+            {scores.interpretation.current_state && !scores.interpretation.current_state.balanced && (
+              <div>
+                <h4 className="font-semibold text-amber-600 mb-2">Current State:</h4>
+                <p className="text-muted-foreground">{scores.interpretation.current_state.message}</p>
+              </div>
+            )}
             <div>
-              <h4 className="font-semibold text-red-600 mb-2">Avoid:</h4>
-              <p className="text-muted-foreground">{healthProfile.dietary_guidelines.avoid?.join(', ')}</p>
+              <h4 className="font-semibold text-blue-600 mb-2">Dietary Priority:</h4>
+              <p className="text-muted-foreground mb-2">
+                <strong>Primary Focus:</strong> {scores.interpretation.dietary_priority?.primary_focus}
+              </p>
+              <p className="text-muted-foreground">
+                <strong>Secondary Focus:</strong> {scores.interpretation.dietary_priority?.secondary_focus}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -129,7 +183,7 @@ export default function AssessmentResults({ results, onStartNew }: AssessmentRes
         <CardContent className="space-y-4">
           <div className="text-center space-y-2">
             <Badge className="text-2xl px-6 py-2 bg-rose-600">
-              {scores.mizaj_type.charAt(0).toUpperCase() + scores.mizaj_type.slice(1)}
+              {scores.primary_mizaj.charAt(0).toUpperCase() + scores.primary_mizaj.slice(1)}
             </Badge>
             <p className="text-muted-foreground">
               {scores.thermal_tendency.charAt(0).toUpperCase() + scores.thermal_tendency.slice(1)} & {' '}
@@ -141,12 +195,12 @@ export default function AssessmentResults({ results, onStartNew }: AssessmentRes
 
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center space-y-1">
-              <p className="text-sm text-muted-foreground">Thermal Score</p>
-              <p className="text-2xl font-bold">{scores.thermal_score}</p>
+              <p className="text-sm text-muted-foreground">Primary Humor</p>
+              <p className="text-2xl font-bold">{scores.humor_scores[scores.primary_mizaj]}</p>
             </div>
             <div className="text-center space-y-1">
-              <p className="text-sm text-muted-foreground">Moisture Score</p>
-              <p className="text-2xl font-bold">{scores.moisture_score}</p>
+              <p className="text-sm text-muted-foreground">Secondary Humor</p>
+              <p className="text-2xl font-bold">{scores.humor_scores[scores.secondary_mizaj]}</p>
             </div>
           </div>
         </CardContent>

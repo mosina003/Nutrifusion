@@ -83,13 +83,21 @@ const systemConfigSchema = new mongoose.Schema({
 
 // Create a default config if none exists
 systemConfigSchema.statics.getConfig = async function() {
-  let config = await this.findOne({ configKey: 'default', isActive: true });
-  
-  if (!config) {
-    config = await this.create({ configKey: 'default' });
+  try {
+    let config = await this.findOneAndUpdate(
+      { configKey: 'default', isActive: true },
+      { $setOnInsert: { configKey: 'default', isActive: true } },
+      { upsert: true, new: true }
+    );
+    
+    return config;
+  } catch (error) {
+    console.error('Error in getConfig:', error);
+    // If there's still an error, try to find existing
+    const existing = await this.findOne({ configKey: 'default', isActive: true });
+    if (existing) return existing;
+    throw error;
   }
-  
-  return config;
 };
 
 // Update config

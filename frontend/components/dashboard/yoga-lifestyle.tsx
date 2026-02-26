@@ -1,28 +1,54 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Activity, Moon, Wind } from 'lucide-react'
+import { getToken } from '@/lib/api'
 
 export function YogaLifestyle() {
-  const yogaPoses = [
-    { name: 'Child\'s Pose', duration: '2 min', benefit: 'Calming & Cooling' },
-    { name: 'Warrior I', duration: '1 min each side', benefit: 'Grounding & Strengthening' },
-    { name: 'Moon Salutation', duration: '5 min', benefit: 'Cooling sequence' },
-  ]
+  const [yogaPoses, setYogaPoses] = useState<any[]>([])
+  const [sleepTips, setSleepTips] = useState<string[]>([])
+  const [stressTips, setStressTips] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const sleepTips = [
-    'Maintain consistent sleep schedule (10 PM - 6 AM)',
-    'Practice deep breathing 10 minutes before bed',
-    'Avoid heavy meals 3 hours before sleep',
-    'Keep bedroom cool and dark',
-  ]
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const token = getToken()
+      if (!token) return
+      
+      try {
+        const response = await fetch('http://localhost:5000/api/dashboard', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const data = await response.json()
+        if (data.success) {
+          setYogaPoses(data.data.yoga.poses)
+          setSleepTips(data.data.yoga.sleepTips)
+          setStressTips(data.data.yoga.stressTips)
+        }
+      } catch (error) {
+        console.error('Error fetching yoga data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const stressTips = [
-    'Practice 10 minutes of meditation daily',
-    'Perform Nadi Shodhana (alternate nostril breathing)',
-    'Take mindful walks in nature',
-    'Journaling for mental clarity',
-  ]
+    fetchDashboardData()
+  }, [])
+
+  if (loading) {
+    return (
+      <section className="mb-8">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <Wind className="w-6 h-6 text-teal-600" />
+          Yoga & Lifestyle
+        </h2>
+        <div className="bg-gray-200 rounded-3xl p-6 h-64 animate-pulse" />
+      </section>
+    )
+  }
 
   return (
     <section className="mb-8">

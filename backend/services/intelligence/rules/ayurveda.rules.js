@@ -1,213 +1,166 @@
 const { createRuleResult } = require('./ruleEngine');
+const { scoreFood } = require('../diet/ayurvedaDietEngine');
 
 /**
- * Ayurveda Rule Engine
- * Evaluates food compatibility based on Ayurvedic principles
+ * Ayurveda Rule Engine - Consolidated Version
+ * 
+ * This file now delegates to the comprehensive ayurvedaDietEngine for scoring,
+ * but maintains backward compatibility with the old interface used by scoreEngine.js
  */
 
 /**
- * Check dosha compatibility with food
- * @param {Object} user - User with prakriti/vikriti
- * @param {Object} food - Food with ayurveda data
- * @returns {RuleResult}
+ * Transform user profile to assessment format
+ * Maps legacy user profile fields to the new assessment structure
  */
-const checkDoshaCompatibility = (user, food) => {
-  if (!food.ayurveda || !food.ayurveda.doshaEffect) {
-    return createRuleResult(0, [], [], false);
-  }
-
-  const { prakriti } = user;
-  const { doshaEffect } = food.ayurveda;
+const _transformUserToAssessment = (user) => {
+  const prakriti = user.prakriti || { vata: 33, pitta: 33, kapha: 33 };
+  const vikriti = user.vikriti || prakriti;
   
-  let scoreDelta = 0;
-  const reasons = [];
-  const warnings = [];
-
   // Determine dominant dosha
   let dominantDosha = 'vata';
-  let dominantValue = prakriti?.vata || 33;
+  let maxValue = vikriti.vata || 33;
   
-  if ((prakriti?.pitta || 33) > dominantValue) {
+  if ((vikriti.pitta || 33) > maxValue) {
     dominantDosha = 'pitta';
-    dominantValue = prakriti.pitta;
+    maxValue = vikriti.pitta;
   }
-  if ((prakriti?.kapha || 33) > dominantValue) {
+  if ((vikriti.kapha || 33) > maxValue) {
     dominantDosha = 'kapha';
-    dominantValue = prakriti.kapha;
+    maxValue = vikriti.kapha;
   }
-
-  // Check effect on dominant dosha
-  const effect = doshaEffect[dominantDosha];
   
-  if (effect === 'Decrease') {
-    scoreDelta += 15;
-    reasons.push(`Balances your dominant ${dominantDosha.charAt(0).toUpperCase() + dominantDosha.slice(1)} dosha`);
-  } else if (effect === 'Increase') {
-    scoreDelta -= 20;
-    warnings.push(`May aggravate your ${dominantDosha.charAt(0).toUpperCase() + dominantDosha.slice(1)} dosha`);
-  } else {
-    scoreDelta += 5;
-    reasons.push(`Neutral effect on ${dominantDosha.charAt(0).toUpperCase() + dominantDosha.slice(1)} dosha`);
+  // Calculate severity based on imbalance
+  // Severity 1 (mild): 40-50, Severity 2 (moderate): 50-60, Severity 3 (severe): 60+
+  let severity = 1;
+  if (maxValue > 60) severity = 3;
+  else if (maxValue > 50) severity = 2;
+  
+  // Map digestionIssues to Agni type
+  let agni = 'Balanced';
+  if (user.digestionIssues === 'Variable' || user.digestionIssues === 'Weak') {
+    agni = 'Variable';
+  } else if (user.digestionIssues === 'Strong') {
+    agni = 'Sharp';
+  } else if (user.digestionIssues === 'Slow') {
+    agni = 'Slow';
   }
-
-  return createRuleResult(scoreDelta, reasons, warnings, false);
+  
+  // Use user.agni if available (preferred)
+  if (user.agni) {
+    agni = user.agni;
+  }
+  
+  return {
+    prakriti,
+    vikriti,
+    agni,
+    dominant_dosha: dominantDosha,
+    severity
+  };
 };
 
 /**
- * Check virya (potency) compatibility
- * @param {Object} user 
- * @param {Object} food 
- * @returns {RuleResult}
+ * Generate user-friendly reasons from score breakdown
  */
-const checkViryaCompatibility = (user, food) => {
-  if (!food.ayurveda || !food.ayurveda.virya) {
-    return createRuleResult(0, [], [], false);
-  }
-
-  const { prakriti } = user;
-  const { virya } = food.ayurveda;
-  
-  let scoreDelta = 0;
+const _generateReasonsFromBreakdown = (breakdown, assessmentResult, food) => {
   const reasons = [];
   const warnings = [];
-
-  // Pitta dominant - prefer cooling foods
-  if ((prakriti?.pitta || 0) > 40) {
-    if (virya === 'Cold') {
-      scoreDelta += 10;
-      reasons.push('Cooling potency suitable for Pitta dominance');
-    } else if (virya === 'Hot') {
-      scoreDelta -= 15;
-      warnings.push('Heating potency may aggravate Pitta');
-    }
-  }
-
-  // Vata & Kapha - prefer warming foods
-  if ((prakriti?.vata || 0) > 40 || (prakriti?.kapha || 0) > 40) {
-    if (virya === 'Hot') {
-      scoreDelta += 10;
-      reasons.push('Warming potency beneficial for Vata/Kapha');
-    } else if (virya === 'Cold') {
-      scoreDelta -= 5;
-      warnings.push('Cooling effect may increase Vata/Kapha');
-    }
-  }
-
-  return createRuleResult(scoreDelta, reasons, warnings, false);
-};
-
-/**
- * Check digestion compatibility
- * @param {Object} user 
- * @param {Object} food 
- * @returns {RuleResult}
- */
-const checkDigestionCompatibility = (user, food) => {
-  if (!food.ayurveda || !food.ayurveda.guna) {
-    return createRuleResult(0, [], [], false);
-  }
-
-  const { digestionIssues } = user;
-  const { guna } = food.ayurveda;
   
-  let scoreDelta = 0;
-  const reasons = [];
-  const warnings = [];
-
-  if (digestionIssues === 'Weak' || digestionIssues === 'Variable') {
-    // Light foods are better
-    if (guna.includes('Light')) {
-      scoreDelta += 15;
-      reasons.push('Light quality aids digestion');
-    } else if (guna.includes('Heavy')) {
-      scoreDelta -= 15;
-      warnings.push('Heavy quality may be difficult to digest');
-    }
-
-    // Oily foods in moderation
-    if (guna.includes('Oily')) {
-      scoreDelta -= 5;
-      warnings.push('Oily foods may slow digestion');
-    } else if (guna.includes('Dry')) {
-      scoreDelta += 5;
-      reasons.push('Dry quality easier on weak digestion');
-    }
-  }
-
-  return createRuleResult(scoreDelta, reasons, warnings, false);
-};
-
-/**
- * Check rasa (taste) balance
- * @param {Object} user 
- * @param {Object} food 
- * @returns {RuleResult}
- */
-const checkRasaBalance = (user, food) => {
-  if (!food.ayurveda || !food.ayurveda.rasa || food.ayurveda.rasa.length === 0) {
-    return createRuleResult(0, [], [], false);
-  }
-
-  const { prakriti } = user;
-  const { rasa } = food.ayurveda;
+  const { dominant_dosha } = assessmentResult;
+  const doshaName = dominant_dosha.charAt(0).toUpperCase() + dominant_dosha.slice(1);
   
-  let scoreDelta = 0;
-  const reasons = [];
-
-  // Pitta - prefer sweet, bitter, astringent
-  if ((prakriti?.pitta || 0) > 40) {
-    if (rasa.includes('Sweet') || rasa.includes('Bitter') || rasa.includes('Astringent')) {
-      scoreDelta += 5;
-      reasons.push(`${rasa.join(', ')} taste balances Pitta`);
-    } else if (rasa.includes('Pungent') || rasa.includes('Sour') || rasa.includes('Salty')) {
-      scoreDelta -= 5;
-    }
+  // Dosha correction reasoning
+  if (breakdown.dosha_correction > 5) {
+    reasons.push(`Balances your dominant ${doshaName} dosha effectively`);
+  } else if (breakdown.dosha_correction < -5) {
+    warnings.push(`May aggravate your ${doshaName} dosha - consume with caution`);
+  } else if (breakdown.dosha_correction > 0) {
+    reasons.push(`Neutral to beneficial effect on ${doshaName} dosha`);
   }
-
-  // Vata - prefer sweet, sour, salty
-  if ((prakriti?.vata || 0) > 40) {
-    if (rasa.includes('Sweet') || rasa.includes('Sour') || rasa.includes('Salty')) {
-      scoreDelta += 5;
-      reasons.push(`${rasa.join(', ')} taste balances Vata`);
-    }
+  
+  // Agni compatibility reasoning
+  if (breakdown.agni_compatibility > 2) {
+    reasons.push(`Well-suited for your ${assessmentResult.agni} Agni (digestive fire)`);
+  } else if (breakdown.agni_compatibility < -2) {
+    warnings.push(`May be difficult to digest with ${assessmentResult.agni} Agni`);
   }
-
-  // Kapha - prefer pungent, bitter, astringent
-  if ((prakriti?.kapha || 0) > 40) {
-    if (rasa.includes('Pungent') || rasa.includes('Bitter') || rasa.includes('Astringent')) {
-      scoreDelta += 5;
-      reasons.push(`${rasa.join(', ')} taste balances Kapha`);
-    }
+  
+  // Virya/Seasonal reasoning
+  if (breakdown.virya_seasonal > 1) {
+    reasons.push('Potency and seasonal qualities are favorable');
+  } else if (breakdown.virya_seasonal < -1) {
+    warnings.push('Potency may not be ideal for your constitution');
   }
-
-  return createRuleResult(scoreDelta, reasons, [], false);
+  
+  // Rasa/Guna reasoning
+  if (breakdown.rasa_guna > 0.5) {
+    reasons.push('Taste and quality profile supports balance');
+  }
+  
+  return { reasons, warnings };
 };
 
 /**
  * Main Ayurveda evaluation function
- * @param {Object} user - User profile
+ * Now uses the comprehensive ayurvedaDietEngine for consistent scoring
+ * 
+ * @param {Object} user - User profile (legacy format)
  * @param {Object} food - Food item
- * @returns {RuleResult} - Combined Ayurveda evaluation
+ * @returns {RuleResult} - Combined Ayurveda evaluation (compatible with scoreEngine)
  */
 const evaluateAyurveda = (user, food) => {
-  const results = [
-    checkDoshaCompatibility(user, food),
-    checkViryaCompatibility(user, food),
-    checkDigestionCompatibility(user, food),
-    checkRasaBalance(user, food)
-  ];
+  // If no Ayurveda data, return neutral
+  if (!food.ayurveda || !food.ayurveda.doshaEffect) {
+    return createRuleResult(0, [], [], false);
+  }
+  
+  try {
+    // Transform legacy user profile to assessment format
+    const assessment = _transformUserToAssessment(user);
+    
+    // Use comprehensive diet engine for scoring
+    const result = scoreFood(assessment, food);
+    
+    // If engine returns null (invalid food), return neutral
+    if (!result) {
+      return createRuleResult(0, [], [], false);
+    }
+    
+    // Generate user-friendly reasons from breakdown
+    const { reasons, warnings } = _generateReasonsFromBreakdown(
+      result.breakdown,
+      assessment,
+      food
+    );
+    
+    // Return in old format for backward compatibility
+    return createRuleResult(result.score, reasons, warnings, false);
+    
+  } catch (error) {
+    console.error('Ayurveda evaluation error:', error);
+    // Fallback to neutral score on error
+    return createRuleResult(0, [], [], false);
+  }
+};
 
-  // Combine all results
-  const combined = results.reduce((acc, result) => {
-    return {
-      scoreDelta: acc.scoreDelta + result.scoreDelta,
-      reasons: [...acc.reasons, ...result.reasons],
-      warnings: [...acc.warnings, ...result.warnings],
-      block: acc.block || result.block
-    };
-  }, createRuleResult());
+/**
+ * Legacy helper functions - maintained for backward compatibility
+ * These now delegate to the main evaluateAyurveda function
+ */
+const checkDoshaCompatibility = (user, food) => {
+  return evaluateAyurveda(user, food);
+};
 
-  return combined;
+const checkViryaCompatibility = (user, food) => {
+  return evaluateAyurveda(user, food);
+};
+
+const checkDigestionCompatibility = (user, food) => {
+  return evaluateAyurveda(user, food);
+};
+
+const checkRasaBalance = (user, food) => {
+  return evaluateAyurveda(user, food);
 };
 
 module.exports = {

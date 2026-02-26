@@ -8,6 +8,62 @@
  * 3. Digestive Strength Adjustment
  */
 
+const path = require('path');
+const fs = require('fs');
+
+// Load Unani food data from JSON file
+const UNANI_FOODS_PATH = path.join(__dirname, '../../../data/unani_food_constitution.json');
+let unaniFoodsData = null;
+
+/**
+ * Load Unani foods from JSON file
+ */
+const loadUnaniFoods = () => {
+  if (!unaniFoodsData) {
+    try {
+      const rawData = fs.readFileSync(UNANI_FOODS_PATH, 'utf8');
+      unaniFoodsData = JSON.parse(rawData);
+      console.log(`✅ Loaded ${unaniFoodsData.length} Unani foods from JSON`);
+    } catch (error) {
+      console.error('❌ Error loading Unani foods:', error);
+      unaniFoodsData = [];
+    }
+  }
+  return unaniFoodsData;
+};
+
+/**
+ * Transform JSON food format to engine format
+ */
+const transformJSONFood = (jsonFood) => {
+  return {
+    _id: jsonFood.food_name,
+    name: jsonFood.food_name,
+    category: jsonFood.category,
+    unani: {
+      temperament: jsonFood.temperament || {
+        hot_level: 0,
+        cold_level: 0,
+        dry_level: 0,
+        moist_level: 0
+      },
+      humorEffects: jsonFood.humor_effects || {
+        dam: 0,
+        safra: 0,
+        balgham: 0,
+        sauda: 0
+      },
+      dominant_humor: jsonFood.dominant_humor || 'dam',
+      organ_affinity: jsonFood.organ_affinity || [],
+      digestibility_level: jsonFood.digestion_ease === 'easy' ? 2 : 
+                          jsonFood.digestion_ease === 'moderate' ? 3 : 4,
+      flatulence_potential: 'low',
+      therapeutic_use: jsonFood.therapeutic_use || ''
+    },
+    verified: true
+  };
+};
+
 class UnaniDietEngine {
   constructor() {
     this.humorNames = {
@@ -318,12 +374,18 @@ class UnaniDietEngine {
   }
 
   /**
-   * Score all foods from database
-   * @param {Array} foods - All food items
+   * Score all foods from database or JSON
+   * @param {Array} foods - All food items (optional)
    * @param {Object} userAssessment - User assessment result
    * @returns {Object} - Ranked foods
    */
   scoreAllFoods(foods, userAssessment) {
+    // If no foods provided, load from JSON
+    if (!foods || foods.length === 0) {
+      const jsonFoods = loadUnaniFoods();
+      foods = jsonFoods.map(transformJSONFood);
+    }
+    
     const scoredFoods = foods.map(food => this.scoreFood(food, userAssessment));
     return this.rankFoods(scoredFoods);
   }

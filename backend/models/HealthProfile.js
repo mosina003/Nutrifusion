@@ -51,6 +51,26 @@ const healthProfileSchema = new mongoose.Schema({
       default: false
     }
   },
+  metabolicMarkers: {
+    bloodPressure: {
+      type: String,
+      trim: true
+    },
+    bloodSugar: {
+      type: String,
+      trim: true
+    },
+    cholesterol: {
+      type: String,
+      trim: true
+    }
+  },
+  anthropometric: {
+    waist: {
+      type: Number,
+      min: 0
+    }
+  },
   recordedAt: {
     type: Date,
     default: Date.now

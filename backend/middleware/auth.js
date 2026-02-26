@@ -1,6 +1,7 @@
 const { verifyToken } = require('../utils/jwt');
 const User = require('../models/User');
 const Practitioner = require('../models/Practitioner');
+const UserActivity = require('../models/UserActivity');
 
 /**
  * Protect routes - Verify JWT token
@@ -37,6 +38,11 @@ const protect = async (req, res, next) => {
         });
       }
       req.userId = decoded.id; // Set userId for easy access
+      
+      // Record daily login activity (async, don't wait)
+      UserActivity.recordLogin(decoded.id).catch(err => 
+        console.error('Error recording user activity:', err)
+      );
     } else if (decoded.role === 'practitioner') {
       req.practitioner = await Practitioner.findById(decoded.id).select('-password');
       if (!req.practitioner) {

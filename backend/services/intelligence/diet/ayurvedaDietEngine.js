@@ -15,7 +15,62 @@
  * 4. Rasa & Guna Enhancement - ±1 point
  */
 
-const Food = require('../../../models/Food');
+const path = require('path');
+const fs = require('fs');
+
+// Load Ayurveda food data from JSON file
+const AYURVEDA_FOODS_PATH = path.join(__dirname, '../../../data/ayurveda_food_constitution.json');
+let ayurvedaFoodsData = null;
+
+/**
+ * Load Ayurveda foods from JSON file
+ */
+const loadAyurvedaFoods = () => {
+  if (!ayurvedaFoodsData) {
+    try {
+      const rawData = fs.readFileSync(AYURVEDA_FOODS_PATH, 'utf8');
+      ayurvedaFoodsData = JSON.parse(rawData);
+      console.log(`✅ Loaded ${ayurvedaFoodsData.length} Ayurveda foods from JSON`);
+    } catch (error) {
+      console.error('❌ Error loading Ayurveda foods:', error);
+      ayurvedaFoodsData = [];
+    }
+  }
+  return ayurvedaFoodsData;
+};
+
+/**
+ * Transform JSON food format to scoring engine format
+ * Converts from JSON schema (vata_effect: -1/0/1) to engine format (doshaEffect: Increase/Decrease/Neutral)
+ */
+const transformJSONFood = (jsonFood) => {
+  const effectMapping = {
+    '-1': 'Decrease',
+    '0': 'Neutral',
+    '1': 'Increase'
+  };
+
+  const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+  
+  return {
+    _id: jsonFood.food_name,
+    name: jsonFood.food_name,
+    category: capitalize(jsonFood.category),
+    ayurveda: {
+      rasa: jsonFood.rasa ? jsonFood.rasa.map(capitalize) : [],
+      guna: jsonFood.guna ? jsonFood.guna.map(capitalize) : [],
+      virya: jsonFood.virya === 'heating' ? 'Hot' : 'Cold',
+      vipaka: capitalize(jsonFood.vipaka || 'sweet'),
+      doshaEffect: {
+        vata: effectMapping[String(jsonFood.vata_effect)] || 'Neutral',
+        pitta: effectMapping[String(jsonFood.pitta_effect)] || 'Neutral',
+        kapha: effectMapping[String(jsonFood.kapha_effect)] || 'Neutral'
+      }
+    },
+    seasonality: ['All Seasons'], // Default, can be enhanced later
+    verified: true
+  };
+};
 
 /**
  * Validate food has Ayurveda data
@@ -285,16 +340,14 @@ const getSeason = (month) => {
  * Score multiple foods and rank them
  * 
  * @param {Object} assessmentResult - Ayurveda assessment results
- * @param {Array} foods - Array of food documents
+ * @param {Array} foods - Array of food documents (optional)
  * @returns {Object} Categorized food recommendations
  */
 const scoreAllFoods = async (assessmentResult, foods = null) => {
-  // If no foods provided, fetch all Ayurveda-enabled foods
+  // If no foods provided, load from JSON file
   if (!foods) {
-    foods = await Food.find({ 
-      'ayurveda.doshaEffect.vata': { $exists: true },
-      verified: true 
-    });
+    const jsonFoods = loadAyurvedaFoods();
+    foods = jsonFoods.map(transformJSONFood);
   }
   
   // Score all foods
@@ -325,5 +378,7 @@ const scoreAllFoods = async (assessmentResult, foods = null) => {
 module.exports = {
   scoreFood,
   scoreAllFoods,
-  validateAyurvedaFood
+  validateAyurvedaFood,
+  loadAyurvedaFoods,
+  transformJSONFood
 };

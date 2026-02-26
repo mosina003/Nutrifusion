@@ -1,164 +1,182 @@
 const { createRuleResult } = require('./ruleEngine');
+const unaniDietEngine = require('../diet/unaniDietEngine');
 
 /**
- * Unani Medicine Rule Engine
- * Evaluates food based on Mizaj (temperament) balancing
+ * Unani Medicine Rule Engine - Consolidated Version
+ * 
+ * This file now delegates to the comprehensive unaniDietEngine for scoring,
+ * but maintains backward compatibility with the old interface used by scoreEngine.js
  */
 
 /**
- * Check heat temperament compatibility
- * @param {Object} user 
- * @param {Object} food 
- * @returns {RuleResult}
+ * Transform user profile to assessment format
+ * Maps legacy user profile fields to the new assessment structure
  */
-const checkHeatBalance = (user, food) => {
-  if (!food.unani || !food.unani.temperament || !food.unani.temperament.heat) {
-    return createRuleResult(0, [], [], false);
-  }
-
-  const userHeat = user.mizaj?.heat || 'Neutral';
-  const foodHeat = food.unani.temperament.heat;
+const _transformUserToAssessment = (user) => {
+  // Extract from user.unaniAssessment if available, otherwise use legacy fields
+  const assessment = {
+    primary_mizaj: user.unaniAssessment?.primary_mizaj || user.mizaj?.type || 'balanced',
+    secondary_mizaj: user.unaniAssessment?.secondary_mizaj || user.mizaj?.secondary || 'balanced',
+    dominant_humor: user.unaniAssessment?.dominant_humor || user.mizaj?.type || 'balanced',
+    severity: user.unaniAssessment?.severity || 1,
+    digestive_strength: user.unaniAssessment?.digestive_strength || user.digestiveStrength || 'moderate'
+  };
   
-  let scoreDelta = 0;
-  const reasons = [];
-  const warnings = [];
-
-  // Hot constitution - prefer cooling foods
-  if (userHeat === 'Hot') {
-    if (foodHeat === 'Cold') {
-      scoreDelta += 15;
-      reasons.push('Cold temperament balances your hot constitution');
-    } else if (foodHeat === 'Hot') {
-      scoreDelta -= 15;
-      warnings.push('Hot temperament may aggravate heat in body');
-    }
+  // If no explicit severity, calculate from mizaj levels
+  if (!user.unaniAssessment?.severity && user.mizaj) {
+    // Check if there's a clear imbalance
+    const mizajLevels = {
+      dam: user.mizaj.dam || 25,
+      safra: user.mizaj.safra || 25,
+      balgham: user.mizaj.balgham || 25,
+      sauda: user.mizaj.sauda || 25
+    };
+    
+    const maxLevel = Math.max(...Object.values(mizajLevels));
+    const minLevel = Math.min(...Object.values(mizajLevels));
+    const difference = maxLevel - minLevel;
+    
+    // Severity based on imbalance magnitude
+    if (difference > 30) assessment.severity = 3;
+    else if (difference > 20) assessment.severity = 2;
+    else assessment.severity = 1;
   }
-
-  // Cold constitution - prefer warming foods
-  if (userHeat === 'Cold') {
-    if (foodHeat === 'Hot') {
-      scoreDelta += 15;
-      reasons.push('Hot temperament balances your cold constitution');
-    } else if (foodHeat === 'Cold') {
-      scoreDelta -= 10;
-      warnings.push('Cold temperament may increase coldness');
-    }
-  }
-
-  return createRuleResult(scoreDelta, reasons, warnings, false);
+  
+  return assessment;
 };
 
 /**
- * Check moisture temperament compatibility
- * @param {Object} user 
- * @param {Object} food 
- * @returns {RuleResult}
+ * Generate user-friendly reasons from score breakdown
  */
-const checkMoistureBalance = (user, food) => {
-  if (!food.unani || !food.unani.temperament || !food.unani.temperament.moisture) {
-    return createRuleResult(0, [], [], false);
-  }
-
-  const userMoisture = user.mizaj?.moisture || 'Neutral';
-  const foodMoisture = food.unani.temperament.moisture;
-  
-  let scoreDelta = 0;
+const _generateReasonsFromBreakdown = (breakdown, assessmentResult, food) => {
   const reasons = [];
   const warnings = [];
-
-  // Moist constitution - prefer drying foods
-  if (userMoisture === 'Moist') {
-    if (foodMoisture === 'Dry') {
-      scoreDelta += 10;
-      reasons.push('Dry nature balances excess moisture');
-    } else if (foodMoisture === 'Moist') {
-      scoreDelta -= 10;
-      warnings.push('Moist nature may increase dampness');
-    }
+  
+  const { dominant_humor, primary_mizaj } = assessmentResult;
+  
+  const humorNames = {
+    dam: 'Dam (Blood)',
+    safra: 'Safra (Yellow Bile)',
+    balgham: 'Balgham (Phlegm)',
+    sauda: 'Sauda (Black Bile)'
+  };
+  
+  const mizajNames = {
+    hot_dry: 'Hot & Dry',
+    hot_moist: 'Hot & Moist',
+    cold_dry: 'Cold & Dry',
+    cold_moist: 'Cold & Moist',
+    balanced: 'Balanced'
+  };
+  
+  // Humor correction reasoning
+  if (breakdown.humor_correction > 5) {
+    reasons.push(`Helps balance ${humorNames[dominant_humor] || dominant_humor} (dominant humor)`);
+  } else if (breakdown.humor_correction < -5) {
+    warnings.push(`May aggravate ${humorNames[dominant_humor] || dominant_humor} - use with caution`);
+  } else if (breakdown.humor_correction > 0) {
+    reasons.push(`Neutral to beneficial effect on humor balance`);
   }
-
-  // Dry constitution - prefer moistening foods
-  if (userMoisture === 'Dry') {
-    if (foodMoisture === 'Moist') {
-      scoreDelta += 10;
-      reasons.push('Moist nature balances dryness');
-    } else if (foodMoisture === 'Dry') {
-      scoreDelta -= 5;
-      warnings.push('Dry nature may aggravate dryness');
-    }
+  
+  // Temperament balance reasoning
+  if (breakdown.temperament_balance > 2) {
+    reasons.push(`Temperament balances your ${mizajNames[primary_mizaj] || primary_mizaj} constitution`);
+  } else if (breakdown.temperament_balance < -2) {
+    warnings.push(`Temperament may not suit ${mizajNames[primary_mizaj] || primary_mizaj} constitution`);
   }
-
-  return createRuleResult(scoreDelta, reasons, warnings, false);
+  
+  // Digestive adjustment reasoning
+  if (breakdown.digestive_adjustment > 2) {
+    reasons.push('Well-suited for your digestive strength');
+  } else if (breakdown.digestive_adjustment < -2) {
+    warnings.push('May be difficult to digest - consume in moderation');
+  }
+  
+  return { reasons, warnings };
 };
 
 /**
- * Check digestion ease compatibility
- * @param {Object} user 
- * @param {Object} food 
- * @returns {RuleResult}
- */
-const checkDigestionEase = (user, food) => {
-  if (!food.unani || !food.unani.digestionEase) {
-    return createRuleResult(0, [], [], false);
-  }
-
-  const { digestionIssues } = user;
-  const { digestionEase } = food.unani;
-  
-  let scoreDelta = 0;
-  const reasons = [];
-  const warnings = [];
-
-  if (digestionIssues === 'Weak') {
-    if (digestionEase === 'Easy') {
-      scoreDelta += 20;
-      reasons.push('Easy to digest, suitable for weak digestion');
-    } else if (digestionEase === 'Heavy') {
-      scoreDelta -= 20;
-      warnings.push('Heavy digestion may burden weak digestive system');
-    } else {
-      scoreDelta += 5;
-      reasons.push('Moderate digestion suitable');
-    }
-  } else if (digestionIssues === 'Strong') {
-    if (digestionEase === 'Heavy') {
-      scoreDelta += 10;
-      reasons.push('Strong digestion can handle heavy foods');
-    } else {
-      scoreDelta += 5;
-    }
-  }
-
-  return createRuleResult(scoreDelta, reasons, warnings, false);
-};
-
-/**
- * Main Unani evaluation function
- * @param {Object} user - User profile
- * @param {Object} food - Food item
- * @returns {RuleResult} - Combined Unani evaluation
+ * Main Unani evaluation function using comprehensive scoring
+ * Now delegates to unaniDietEngine for consistent scoring
+ * 
+ * @param {Object} user - User profile with Unani assessment
+ * @param {Object} food - Food item with Unani properties
+ * @returns {RuleResult} - Combined Unani evaluation (compatible with scoreEngine)
  */
 const evaluateUnani = (user, food) => {
-  const results = [
-    checkHeatBalance(user, food),
-    checkMoistureBalance(user, food),
-    checkDigestionEase(user, food)
-  ];
+  // If no Unani data, return neutral
+  if (!user.unaniAssessment && !user.mizaj) {
+    return createRuleResult(0, [], [], false);
+  }
+  
+  if (!food.unani) {
+    return createRuleResult(0, [], [], false);
+  }
+  
+  try {
+    // Transform legacy user profile to assessment format
+    const assessment = _transformUserToAssessment(user);
+    
+    // Use comprehensive diet engine for scoring
+    const result = unaniDietEngine.scoreFood(food, assessment);
+    
+    // If engine returns null (invalid food), return neutral
+    if (!result) {
+      return createRuleResult(0, [], [], false);
+    }
+    
+    // Generate user-friendly reasons from breakdown
+    const { reasons, warnings } = _generateReasonsFromBreakdown(
+      result.breakdown,
+      assessment,
+      food
+    );
+    
+    // Return in old format for backward compatibility
+    return createRuleResult(result.score, reasons, warnings, false);
+    
+  } catch (error) {
+    console.error('Unani evaluation error:', error);
+    // Fallback to neutral score on error
+    return createRuleResult(0, [], [], false);
+  }
+};
 
-  const combined = results.reduce((acc, result) => {
-    return {
-      scoreDelta: acc.scoreDelta + result.scoreDelta,
-      reasons: [...acc.reasons, ...result.reasons],
-      warnings: [...acc.warnings, ...result.warnings],
-      block: acc.block || result.block
-    };
-  }, createRuleResult());
+/**
+ * Legacy helper functions - maintained for backward compatibility
+ * These now delegate to the main evaluateUnani function
+ */
+const checkHeatBalance = (user, food) => {
+  return evaluateUnani(user, food);
+};
 
-  return combined;
+const checkMoistureBalance = (user, food) => {
+  return evaluateUnani(user, food);
+};
+
+const checkDigestionEase = (user, food) => {
+  return evaluateUnani(user, food);
+};
+
+// Export legacy individual evaluation functions (kept for backward compatibility)
+const evaluateHumorCorrection = (user, food) => {
+  return evaluateUnani(user, food);
+};
+
+const evaluateTemperamentBalance = (user, food) => {
+  return evaluateUnani(user, food);
+};
+
+const evaluateDigestiveAdjustment = (user, food) => {
+  return evaluateUnani(user, food);
 };
 
 module.exports = {
   evaluateUnani,
+  evaluateHumorCorrection,
+  evaluateTemperamentBalance,
+  evaluateDigestiveAdjustment,
+  // Legacy exports for backward compatibility
   checkHeatBalance,
   checkMoistureBalance,
   checkDigestionEase

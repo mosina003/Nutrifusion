@@ -13,35 +13,84 @@ const { generateWeeklyPlan, generateReasoning } = require('./ayurvedaMealPlan');
 const Food = require('../../../models/Food');
 
 /**
- * Validate Ayurveda assessment result structure
+ * Normalize assessment result to ensure required fields
+ * Calculates missing fields from existing data for backward compatibility
  * 
  * @param {Object} assessmentResult
- * @returns {boolean}
+ * @returns {Object} Normalized assessment with all required fields
  */
-const _validateAssessment = (assessmentResult) => {
+const _normalizeAssessment = (assessmentResult) => {
   if (!assessmentResult) {
     throw new Error('Assessment result is required');
   }
   
-  const { prakriti, vikriti, agni, dominant_dosha, severity } = assessmentResult;
+  const { prakriti, vikriti, agni } = assessmentResult;
   
   if (!prakriti || !vikriti) {
     throw new Error('Assessment must include prakriti and vikriti');
+  }
+  
+  // Calculate dominant_dosha if missing (for backward compatibility)
+  let dominant_dosha = assessmentResult.dominant_dosha;
+  if (!dominant_dosha && vikriti.dominant) {
+    dominant_dosha = vikriti.dominant;
+    console.log('ℹ️  Computed dominant_dosha from vikriti:', dominant_dosha);
   }
   
   if (!dominant_dosha || !['vata', 'pitta', 'kapha'].includes(dominant_dosha)) {
     throw new Error('Invalid or missing dominant_dosha. Must be: vata, pitta, or kapha');
   }
   
-  if (!agni || !['Variable', 'Sharp', 'Slow', 'Balanced'].includes(agni)) {
+  // Validate agni (can be object or string)
+  let agniType = agni;
+  if (typeof agni === 'object' && agni.type) {
+    // Convert object format to string
+    const agniMap = {
+      'vishama': 'Variable',
+      'tikshna': 'Sharp',
+      'manda': 'Slow',
+      'sama': 'Balanced'
+    };
+    agniType = agniMap[agni.type] || agni.type;
+  }
+  
+  if (!agniType || !['Variable', 'Sharp', 'Slow', 'Balanced'].includes(agniType)) {
     throw new Error('Invalid or missing agni type');
+  }
+  
+  // Calculate severity if missing (for backward compatibility)
+  let severity = assessmentResult.severity;
+  if (!severity) {
+    // Calculate based on imbalance
+    if (vikriti.is_balanced) {
+      severity = 1;
+    } else if (prakriti.primary !== vikriti.dominant) {
+      severity = 3; // Different dominant dosha = severe
+    } else {
+      // Check vikriti score proportion
+      const dominantScore = vikriti.scores ? vikriti.scores[dominant_dosha] : 0;
+      if (dominantScore >= 5) {
+        severity = 3;
+      } else if (dominantScore >= 4) {
+        severity = 2;
+      } else {
+        severity = 1;
+      }
+    }
+    console.log('ℹ️  Computed severity:', severity);
   }
   
   if (!severity || severity < 1 || severity > 3) {
     throw new Error('Severity must be between 1-3');
   }
   
-  return true;
+  // Return normalized assessment
+  return {
+    ...assessmentResult,
+    dominant_dosha,
+    agni: agniType,
+    severity
+  };
 };
 
 /**
@@ -65,12 +114,12 @@ const _validateAssessment = (assessmentResult) => {
  */
 const generateDietPlan = async (assessmentResult, preferences = {}) => {
   try {
-    // Validate assessment
-    _validateAssessment(assessmentResult);
+    // Normalize and validate assessment (backward compatible)
+    const normalizedAssessment = _normalizeAssessment(assessmentResult);
     
     // Step 1: Score all foods
     console.log('Scoring all Ayurveda foods...');
-    const categorizedFoods = await scoreAllFoods(assessmentResult);
+    const categorizedFoods = await scoreAllFoods(normalizedAssessment);
     
     if (categorizedFoods.highly_recommended.length === 0) {
       throw new Error('No compatible foods found. Please check food database.');
@@ -104,15 +153,38 @@ const generateDietPlan = async (assessmentResult, preferences = {}) => {
     
     // Step 3: Generate 7-day meal plan
     console.log('Generating 7-day Ayurveda meal plan...');
-    const weeklyPlan = generateWeeklyPlan(assessmentResult, categorizedFoods);
+    const weeklyPlan = generateWeeklyPlan(normalizedAssessment, categorizedFoods);
     
     // Step 4: Generate reasoning and summary
-    const reasoning = generateReasoning(assessmentResult, categorizedFoods);
+    const reasoning = generateReasoning(normalizedAssessment, categorizedFoods);
     
-    // Step 5: Return complete plan
+    // Step 5: Transform weekly plan to expected format
+    const transformedWeeklyPlan = {};
+    weeklyPlan.forEach((dayPlan, index) => {
+      const dayKey = `day_${index + 1}`;
+      
+      // Extract breakfast, lunch, dinner from meals array
+      const breakfast = dayPlan.meals.find(m => m.meal_type === 'Breakfast');
+      const lunch = dayPlan.meals.find(m => m.meal_type === 'Lunch');
+      const dinner = dayPlan.meals.find(m => m.meal_type === 'Dinner');
+      
+      transformedWeeklyPlan[dayKey] = {
+        breakfast: breakfast ? breakfast.foods.map(f => f.food.name) : [],
+        lunch: lunch ? lunch.foods.map(f => f.food.name) : [],
+        dinner: dinner ? dinner.foods.map(f => f.food.name) : [],
+        guidelines: dayPlan.guidelines || []
+      };
+    });
+    
+    // Step 6: Return complete plan in expected format
     return {
-      weeklyPlan,
-      reasoning,
+      '7_day_plan': transformedWeeklyPlan,
+      top_ranked_foods: categorizedFoods.highly_recommended.slice(0, 20).map(f => ({
+        food_name: f.food.name,
+        score: f.score
+      })),
+      reasoning_summary: reasoning.constitution_summary || '',
+      reasoning: reasoning,
       topRecommendations: categorizedFoods.highly_recommended.slice(0, 20),
       avoidFoods: categorizedFoods.avoid.slice(0, 15),
       summary: {
@@ -141,9 +213,9 @@ const generateDietPlan = async (assessmentResult, preferences = {}) => {
  */
 const getFoodRecommendations = async (assessmentResult, limit = 50) => {
   try {
-    _validateAssessment(assessmentResult);
+    const normalizedAssessment = _normalizeAssessment(assessmentResult);
     
-    const categorizedFoods = await scoreAllFoods(assessmentResult);
+    const categorizedFoods = await scoreAllFoods(normalizedAssessment);
     
     return {
       highly_recommended: categorizedFoods.highly_recommended.slice(0, Math.ceil(limit * 0.4)),
@@ -171,7 +243,7 @@ const getFoodRecommendations = async (assessmentResult, limit = 50) => {
  */
 const scoreSingleFood = async (assessmentResult, food) => {
   try {
-    _validateAssessment(assessmentResult);
+    const normalizedAssessment = _normalizeAssessment(assessmentResult);
     
     // If food is an ID, fetch it
     if (typeof food === 'string') {
@@ -181,7 +253,7 @@ const scoreSingleFood = async (assessmentResult, food) => {
       }
     }
     
-    const scoredFood = scoreFood(assessmentResult, food);
+    const scoredFood = scoreFood(normalizedAssessment, food);
     
     if (!scoredFood) {
       throw new Error('Food does not have Ayurveda data or is invalid');
@@ -195,12 +267,12 @@ const scoreSingleFood = async (assessmentResult, food) => {
         ? 'Moderate - Consume in moderation' 
         : 'Avoid or minimize',
       details: {
-        dosha_analysis: `This food ${food.ayurveda.doshaEffect[assessmentResult.dominant_dosha] === 'Decrease' ? 'balances' : food.ayurveda.doshaEffect[assessmentResult.dominant_dosha] === 'Increase' ? 'aggravates' : 'is neutral for'} your dominant ${assessmentResult.dominant_dosha} dosha`,
-        agni_compatibility: assessmentResult.agni === 'Variable' 
+        dosha_analysis: `This food ${food.ayurveda.doshaEffect[normalizedAssessment.dominant_dosha] === 'Decrease' ? 'balances' : food.ayurveda.doshaEffect[normalizedAssessment.dominant_dosha] === 'Increase' ? 'aggravates' : 'is neutral for'} your dominant ${normalizedAssessment.dominant_dosha} dosha`,
+        agni_compatibility: normalizedAssessment.agni === 'Variable' 
           ? 'Ensure food is warm and well-cooked for Variable Agni'
-          : assessmentResult.agni === 'Sharp'
+          : normalizedAssessment.agni === 'Sharp'
           ? 'Your strong Agni can handle most foods'
-          : assessmentResult.agni === 'Slow'
+          : normalizedAssessment.agni === 'Slow'
           ? 'Keep portions light for Slow Agni'
           : 'Balanced Agni - no special restrictions'
       }

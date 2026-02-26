@@ -11,7 +11,13 @@ const dietPlanSchema = new mongoose.Schema({
     trim: true,
     default: 'My Diet Plan'
   },
+  planType: {
+    type: String,
+    enum: ['ayurveda', 'unani', 'tcm', 'modern', 'custom'],
+    default: 'custom'
+  },
   meals: [{
+    day: Number,                    // Day number (1-7) for weekly plans
     mealType: {
       type: String,
       enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Pre-Workout', 'Post-Workout'],
@@ -19,20 +25,20 @@ const dietPlanSchema = new mongoose.Schema({
     },
     recipeId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Recipe',
-      required: true
+      ref: 'Recipe'
+      // Not required anymore - can use foods array for auto-generated plans
     },
+    foods: [String],                // Food names (for auto-generated plans without recipes)
     portion: {
       type: Number,
       min: 0.1,
       default: 1
     },
-    scheduledTime: String
+    timing: String,                 // e.g., "7:00 AM - 8:00 AM"
+    scheduledTime: String,
+    notes: String                   // Additional meal notes
   }],
-  rulesApplied: [{
-    type: String,
-    trim: true
-  }],
+  rulesApplied: [mongoose.Schema.Types.Mixed],  // Flexible for different frameworks
   nutrientSnapshot: {
     calories: {
       type: Number,
@@ -86,6 +92,10 @@ const dietPlanSchema = new mongoose.Schema({
   validTo: {
     type: Date,
     required: true
+  },
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
   createdAt: {
     type: Date,

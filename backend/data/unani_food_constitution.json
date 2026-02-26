@@ -1,0 +1,502 @@
+[
+  {
+    "food_name": "Idli",
+    "category": "grain",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 0, "moist_level": 2},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 0, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Light, easily digestible, cooling"
+  },
+  {
+    "food_name": "Dosa",
+    "category": "grain",
+    "temperament": {"hot_level": 2, "cold_level": 1, "dry_level": 1, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": -1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, stimulates digestion"
+  },
+  {
+    "food_name": "Upma",
+    "category": "grain",
+    "temperament": {"hot_level": 2, "cold_level": 0, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": -1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, strengthening"
+  },
+  {
+    "food_name": "Poha",
+    "category": "grain",
+    "temperament": {"hot_level": 1, "cold_level": 1, "dry_level": 0, "moist_level": 2},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 0, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Light, easy to digest"
+  },
+  {
+    "food_name": "Paratha",
+    "category": "grain",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Nourishing, heavy, warming"
+  },
+  {
+    "food_name": "Pongal",
+    "category": "grain",
+    "temperament": {"hot_level": 2, "cold_level": 1, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 1, "sauda": -1},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Nourishing, moistening"
+  },
+  {
+    "food_name": "Biryani",
+    "category": "grain",
+    "temperament": {"hot_level": 4, "cold_level": 0, "dry_level": 2, "moist_level": 2},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 1},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Very warming, strengthening, heavy"
+  },
+  {
+    "food_name": "Fried Rice",
+    "category": "grain",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Warming, heavy"
+  },
+  {
+    "food_name": "Oatmeal",
+    "category": "grain",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 1, "sauda": -1},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Cooling, moistening, soothing"
+  },
+  {
+    "food_name": "Bread Toast",
+    "category": "grain",
+    "temperament": {"hot_level": 2, "cold_level": 0, "dry_level": 3, "moist_level": 0},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": -1, "sauda": 1},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, drying"
+  },
+  {
+    "food_name": "Chapati",
+    "category": "grain",
+    "temperament": {"hot_level": 2, "cold_level": 0, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": -1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, light"
+  },
+  {
+    "food_name": "Cornflakes",
+    "category": "grain",
+    "temperament": {"hot_level": 1, "cold_level": 1, "dry_level": 3, "moist_level": 0},
+    "dominant_humor": "sauda",
+    "humor_effects": {"dam": 0, "safra": 0, "balgham": -1, "sauda": 1},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Dry, light"
+  },
+  {
+    "food_name": "Dal Tadka",
+    "category": "legume",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 1, "moist_level": 2},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, nourishing, strengthening"
+  },
+  {
+    "food_name": "Chole",
+    "category": "legume",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Warming, strengthening, heavy"
+  },
+  {
+    "food_name": "Rajma",
+    "category": "legume",
+    "temperament": {"hot_level": 2, "cold_level": 1, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 1, "sauda": 1},
+    "organ_affinity": ["معدہ (Stomach)", "گردے (Kidneys)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Nourishing, heavy"
+  },
+  {
+    "food_name": "Hummus",
+    "category": "legume",
+    "temperament": {"hot_level": 2, "cold_level": 1, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Nourishing, moistening"
+  },
+  {
+    "food_name": "Sprout Salad",
+    "category": "vegetable",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 0, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Cooling, cleansing, light"
+  },
+  {
+    "food_name": "Paneer Butter Masala",
+    "category": "dairy",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Very nourishing, heavy, rich"
+  },
+  {
+    "food_name": "Curd",
+    "category": "dairy",
+    "temperament": {"hot_level": 2, "cold_level": 2, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Cooling, moistening, probiotic"
+  },
+  {
+    "food_name": "Cheese Sandwich",
+    "category": "dairy",
+    "temperament": {"hot_level": 2, "cold_level": 1, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Nourishing, heavy"
+  },
+  {
+    "food_name": "Chicken Curry",
+    "category": "meat",
+    "temperament": {"hot_level": 4, "cold_level": 0, "dry_level": 1, "moist_level": 2},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Very warming, strengthening"
+  },
+  {
+    "food_name": "Fish Fry",
+    "category": "meat",
+    "temperament": {"hot_level": 3, "cold_level": 1, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "دماغ (Brain)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Warming, strengthening"
+  },
+  {
+    "food_name": "Egg Omelette",
+    "category": "meat",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 1, "moist_level": 2},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "دماغ (Brain)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, nourishing"
+  },
+  {
+    "food_name": "Grilled Chicken",
+    "category": "meat",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 0, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "عضلات (Muscles)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, strengthening"
+  },
+  {
+    "food_name": "Apple",
+    "category": "fruit",
+    "temperament": {"hot_level": 0, "cold_level": 3, "dry_level": 0, "moist_level": 2},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": -1, "sauda": -1},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Cooling, cleansing, balancing"
+  },
+  {
+    "food_name": "Mango",
+    "category": "fruit",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, nourishing, sweet"
+  },
+  {
+    "food_name": "Banana",
+    "category": "fruit",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Cooling, moistening, nourishing"
+  },
+  {
+    "food_name": "Orange Juice",
+    "category": "beverage",
+    "temperament": {"hot_level": 1, "cold_level": 3, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 0, "sauda": -1},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Cooling, refreshing, vitamin C"
+  },
+  {
+    "food_name": "Tea",
+    "category": "beverage",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 2, "moist_level": 0},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": -1, "sauda": 1},
+    "organ_affinity": ["معدہ (Stomach)", "دماغ (Brain)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Warming, stimulating, drying"
+  },
+  {
+    "food_name": "Coffee",
+    "category": "beverage",
+    "temperament": {"hot_level": 4, "cold_level": 0, "dry_level": 3, "moist_level": 0},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": -1, "safra": 1, "balgham": -1, "sauda": 1},
+    "organ_affinity": ["دماغ (Brain)", "قلب (Heart)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Very warming, drying, stimulating"
+  },
+  {
+    "food_name": "Lassi",
+    "category": "beverage",
+    "temperament": {"hot_level": 1, "cold_level": 3, "dry_level": 0, "moist_level": 4},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 1, "sauda": -1},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Very cooling, moistening, soothing"
+  },
+  {
+    "food_name": "Coconut Water",
+    "category": "beverage",
+    "temperament": {"hot_level": 0, "cold_level": 4, "dry_level": 0, "moist_level": 4},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 0, "sauda": -1},
+    "organ_affinity": ["گردے (Kidneys)", "مثانہ (Bladder)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Very cooling, hydrating, electrolytes"
+  },
+  {
+    "food_name": "Carrot",
+    "category": "vegetable",
+    "temperament": {"hot_level": 2, "cold_level": 1, "dry_level": 1, "moist_level": 1},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 0, "sauda": -1},
+    "organ_affinity": ["آنکھیں (Eyes)", "جگر (Liver)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Warming, vision support"
+  },
+  {
+    "food_name": "Spinach",
+    "category": "vegetable",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 1, "moist_level": 1},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 0, "sauda": -1},
+    "organ_affinity": ["خون (Blood)", "جگر (Liver)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Cooling, blood building, iron-rich"
+  },
+  {
+    "food_name": "Potato",
+    "category": "vegetable",
+    "temperament": {"hot_level": 1, "cold_level": 1, "dry_level": 0, "moist_level": 2},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Neutral, nourishing"
+  },
+  {
+    "food_name": "Tomato",
+    "category": "vegetable",
+    "temperament": {"hot_level": 2, "cold_level": 2, "dry_level": 0, "moist_level": 2},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 0, "sauda": -1},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Balanced, cleansing"
+  },
+  {
+    "food_name": "Onion",
+    "category": "vegetable",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 1, "moist_level": 2},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "پھیپھڑے (Lungs)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, expectorant"
+  },
+  {
+    "food_name": "Cumin",
+    "category": "spice",
+    "temperament": {"hot_level": 4, "cold_level": 0, "dry_level": 3, "moist_level": 0},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": -1, "sauda": -1},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Very warming, digestive, carminative"
+  },
+  {
+    "food_name": "Turmeric",
+    "category": "spice",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 3, "moist_level": 0},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": -1, "sauda": -1},
+    "organ_affinity": ["جگر (Liver)", "خون (Blood)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Warming, anti-inflammatory, blood purifier"
+  },
+  {
+    "food_name": "Black Pepper",
+    "category": "spice",
+    "temperament": {"hot_level": 4, "cold_level": 0, "dry_level": 4, "moist_level": 0},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 0, "safra": 1, "balgham": -1, "sauda": 1},
+    "organ_affinity": ["معدہ (Stomach)", "پھیپھڑے (Lungs)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Very warming, very drying, digestive"
+  },
+  {
+    "food_name": "Olive Oil",
+    "category": "oil",
+    "temperament": {"hot_level": 2, "cold_level": 1, "dry_level": 0, "moist_level": 4},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 1, "sauda": -1},
+    "organ_affinity": ["جگر (Liver)", "آنتیں (Intestines)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, moistening, heart-healthy"
+  },
+  {
+    "food_name": "Coconut Oil",
+    "category": "oil",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 0, "moist_level": 4},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 1, "sauda": -1},
+    "organ_affinity": ["جلد (Skin)", "بال (Hair)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Cooling, moistening, nourishing"
+  },
+  {
+    "food_name": "Butter",
+    "category": "oil",
+    "temperament": {"hot_level": 2, "cold_level": 1, "dry_level": 0, "moist_level": 4},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": 0, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "جلد (Skin)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Moistening, nourishing, heavy"
+  },
+  {
+    "food_name": "Ghee",
+    "category": "oil",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 0, "moist_level": 4},
+    "dominant_humor": "dam",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 0, "sauda": -1},
+    "organ_affinity": ["جگر (Liver)", "دماغ (Brain)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Warming, nourishing, strengthening"
+  },
+  {
+    "food_name": "Milk",
+    "category": "dairy",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 0, "moist_level": 4},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 1, "sauda": -1},
+    "organ_affinity": ["ہڈیاں (Bones)", "دماغ (Brain)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Cooling, nourishing, strength-building"
+  },
+  {
+    "food_name": "Tofu",
+    "category": "legume",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 0, "moist_level": 3},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "گردے (Kidneys)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Cooling, moistening, protein-rich"
+  },
+  {
+    "food_name": "Falafel",
+    "category": "legume",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 3, "moist_level": 1},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "آنتیں (Intestines)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Warming, drying, heavy"
+  },
+  {
+    "food_name": "Pasta",
+    "category": "grain",
+    "temperament": {"hot_level": 2, "cold_level": 0, "dry_level": 2, "moist_level": 1},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 0, "safra": 0, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "moderate",
+    "therapeutic_use": "Neutral, nourishing"
+  },
+  {
+    "food_name": "Pizza",
+    "category": "grain",
+    "temperament": {"hot_level": 3, "cold_level": 0, "dry_level": 1, "moist_level": 3},
+    "dominant_humor": "safra",
+    "humor_effects": {"dam": 1, "safra": 1, "balgham": 1, "sauda": 0},
+    "organ_affinity": ["معدہ (Stomach)", "جگر (Liver)"],
+    "digestion_ease": "hard",
+    "therapeutic_use": "Warming, heavy, rich"
+  },
+  {
+    "food_name": "Sushi Rice",
+    "category": "grain",
+    "temperament": {"hot_level": 1, "cold_level": 2, "dry_level": 0, "moist_level": 2},
+    "dominant_humor": "balgham",
+    "humor_effects": {"dam": 1, "safra": -1, "balgham": 0, "sauda": -1},
+    "organ_affinity": ["معدہ (Stomach)"],
+    "digestion_ease": "easy",
+    "therapeutic_use": "Cooling, easily digestible"
+  }
+]

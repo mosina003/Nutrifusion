@@ -27,11 +27,36 @@ const calculateFoodScore = async (user, food, options = {}) => {
   const allWarnings = [];
   let blocked = false;
 
-  // Evaluate all systems
-  const ayurvedaResult = evaluateAyurveda(user, food);
-  const unaniResult = evaluateUnani(user, food);
-  const tcmResult = evaluateTCM(user, food);
-  const modernResult = evaluateModern(user, food);
+  // Determine which framework to use based on user's assessment
+  let userFramework = null;
+  if (user.assessmentData || user.prakriti || user.vikriti) {
+    userFramework = 'ayurveda';
+  } else if (user.unaniAssessment) {
+    userFramework = 'unani';
+  } else if (user.tcmAssessment) {
+    userFramework = 'tcm';
+  } else if (user.modernAssessment) {
+    userFramework = 'modern';
+  }
+
+  // Evaluate only the user's framework + safety (always applied)
+  let ayurvedaResult = { scoreDelta: 0, reasons: [], warnings: [], block: false };
+  let unaniResult = { scoreDelta: 0, reasons: [], warnings: [], block: false };
+  let tcmResult = { scoreDelta: 0, reasons: [], warnings: [], block: false };
+  let modernResult = { scoreDelta: 0, reasons: [], warnings: [], block: false };
+  
+  // Only evaluate the framework that matches the user's assessment
+  if (userFramework === 'ayurveda' || !userFramework) {
+    ayurvedaResult = evaluateAyurveda(user, food);
+  } else if (userFramework === 'unani') {
+    unaniResult = evaluateUnani(user, food);
+  } else if (userFramework === 'tcm') {
+    tcmResult = evaluateTCM(user, food);
+  } else if (userFramework === 'modern') {
+    modernResult = evaluateModern(user, food);
+  }
+  
+  // Always evaluate safety
   const safetyResult = evaluateSafety(user, food);
 
   // Track individual system scores (raw deltas)

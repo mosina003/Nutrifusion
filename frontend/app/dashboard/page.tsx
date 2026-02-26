@@ -10,9 +10,11 @@ import { YogaLifestyle } from '@/components/dashboard/yoga-lifestyle'
 import { ProgressCharts } from '@/components/dashboard/progress-charts'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
+  const router = useRouter()
 
   return (
     <ProtectedRoute requiredRole="user">
@@ -35,6 +37,15 @@ export default function DashboardPage() {
               <Button variant="ghost" size="icon" className="text-slate-600 hover:text-slate-900">
                 <Bell className="w-5 h-5" />
               </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-slate-600 hover:text-slate-900"
+                onClick={() => router.push('/profile')}
+                title="View Profile"
+              >
+                <User className="w-5 h-5" />
+              </Button>
               <Button variant="ghost" size="icon" className="text-slate-600 hover:text-slate-900">
                 <Settings className="w-5 h-5" />
               </Button>
@@ -47,7 +58,11 @@ export default function DashboardPage() {
               >
                 <LogOut className="w-5 h-5" />
               </Button>
-              <div className="h-8 w-8 bg-gradient-to-br from-orange-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity">
+              <div 
+                className="h-8 w-8 bg-gradient-to-br from-orange-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => router.push('/profile')}
+                title="View Profile"
+              >
                 {(user?.name || user?.email)?.charAt(0).toUpperCase()}
               </div>
             </div>

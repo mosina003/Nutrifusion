@@ -330,6 +330,123 @@ const seedInitialData = async () => {
           seasonality: ['All Seasons'],
           source: 'AYUSH',
           verified: true
+        },
+        {
+          name: 'Coconut Water',
+          aliases: ['Nariyal Pani', 'Tender Coconut Water'],
+          category: 'Beverage',
+          modernNutrition: {
+            perUnit: '100ml',
+            calories: 19,
+            protein: 0.7,
+            carbs: 3.7,
+            fat: 0.2,
+            fiber: 1.1
+          },
+          ayurveda: {
+            rasa: ['Sweet'],
+            guna: ['Light', 'Cold'],
+            virya: 'Cold',
+            vipaka: 'Sweet',
+            doshaEffect: {
+              vata: 'Neutral',
+              pitta: 'Decrease',
+              kapha: 'Neutral'
+            }
+          },
+          unani: {
+            temperament: {
+              heat: 'Cold',
+              moisture: 'Moist'
+            },
+            digestionEase: 'Easy'
+          },
+          tcm: {
+            thermalNature: 'Cool',
+            meridian: ['Heart', 'Stomach'],
+            flavor: ['Sweet']
+          },
+          seasonality: ['Summer', 'Spring'],
+          source: 'Traditional',
+          verified: true
+        },
+        {
+          name: 'Cucumber',
+          aliases: ['Kheera', 'Soutekayi'],
+          category: 'Vegetable',
+          modernNutrition: {
+            perUnit: '100g',
+            calories: 15,
+            protein: 0.7,
+            carbs: 3.6,
+            fat: 0.1,
+            fiber: 0.5
+          },
+          ayurveda: {
+            rasa: ['Sweet'],
+            guna: ['Light', 'Cold'],
+            virya: 'Cold',
+            vipaka: 'Sweet',
+            doshaEffect: {
+              vata: 'Neutral',
+              pitta: 'Decrease',
+              kapha: 'Decrease'
+            }
+          },
+          unani: {
+            temperament: {
+              heat: 'Cold',
+              moisture: 'Moist'
+            },
+            digestionEase: 'Easy'
+          },
+          tcm: {
+            thermalNature: 'Cool',
+            meridian: ['Bladder', 'Stomach'],
+            flavor: ['Sweet']
+          },
+          seasonality: ['Summer'],
+          source: 'USDA',
+          verified: true
+        },
+        {
+          name: 'Basmati Rice',
+          aliases: ['Basmati Chawal'],
+          category: 'Grain',
+          modernNutrition: {
+            perUnit: '100g',
+            calories: 121,
+            protein: 3.5,
+            carbs: 25,
+            fat: 0.4,
+            fiber: 0.6
+          },
+          ayurveda: {
+            rasa: ['Sweet'],
+            guna: ['Light'],
+            virya: 'Cold',
+            vipaka: 'Sweet',
+            doshaEffect: {
+              vata: 'Decrease',
+              pitta: 'Decrease',
+              kapha: 'Neutral'
+            }
+          },
+          unani: {
+            temperament: {
+              heat: 'Cold',
+              moisture: 'Moist'
+            },
+            digestionEase: 'Easy'
+          },
+          tcm: {
+            thermalNature: 'Neutral',
+            meridian: ['Spleen', 'Stomach'],
+            flavor: ['Sweet']
+          },
+          seasonality: ['All Seasons'],
+          source: 'Traditional',
+          verified: true
         }
       ];
 

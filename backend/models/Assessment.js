@@ -27,6 +27,9 @@ const assessmentSchema = new mongoose.Schema({
   nutritionInputs: {
     type: mongoose.Schema.Types.Mixed
   },
+  dietPlan: {
+    type: mongoose.Schema.Types.Mixed
+  },
   completedAt: {
     type: Date,
     default: Date.now

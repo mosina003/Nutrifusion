@@ -9,6 +9,7 @@ const AuditLog = require('./AuditLog');
 const MedicalCondition = require('./MedicalCondition');
 const SystemConfig = require('./SystemConfig');
 const Assessment = require('./Assessment');
+const UserActivity = require('./UserActivity');
 
 module.exports = {
   User,
@@ -20,5 +21,6 @@ module.exports = {
   AuditLog,
   MedicalCondition,
   SystemConfig,
-  Assessment
+  Assessment,
+  UserActivity
 };

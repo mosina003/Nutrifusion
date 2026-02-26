@@ -17,7 +17,9 @@ router.post('/', protect, auditLog('HealthProfile'), async (req, res) => {
       bmi,
       chronicConditions,
       lifestyle,
-      digestionIndicators
+      digestionIndicators,
+      metabolicMarkers,
+      anthropometric
     } = req.body;
 
     // If user is creating their own profile
@@ -52,6 +54,8 @@ router.post('/', protect, auditLog('HealthProfile'), async (req, res) => {
       chronicConditions: chronicConditions || [],
       lifestyle: lifestyle || {},
       digestionIndicators: digestionIndicators || {},
+      metabolicMarkers: metabolicMarkers || {},
+      anthropometric: anthropometric || {},
       recordedAt: new Date()
     });
 

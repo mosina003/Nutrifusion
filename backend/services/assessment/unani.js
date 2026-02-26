@@ -1,11 +1,18 @@
 /**
  * Unani Assessment Engine
- * Identifies Mizaj (Temperament) based on hot/cold and dry/moist qualities
+ * Identifies Mizaj (Temperament) and Akhlat (Humors) based on Unani principles
+ * Four Humors: Dam (Hot+Moist), Safra (Hot+Dry), Balgham (Cold+Moist), Sauda (Cold+Dry)
  */
 
 class UnaniEngine {
   constructor() {
-    this.mizajTypes = ['damvi', 'safravi', 'balghami', 'saudavi'];
+    this.humorTypes = ['dam', 'safra', 'balgham', 'sauda'];
+    this.humorNames = {
+      dam: 'Dam (Hot + Moist)',
+      safra: 'Safra (Hot + Dry)',
+      balgham: 'Balgham (Cold + Moist)',
+      sauda: 'Sauda (Cold + Dry)'
+    };
   }
 
   /**
@@ -14,66 +21,122 @@ class UnaniEngine {
    * @returns {Object} Scored health profile
    */
   score(responses) {
-    const scores = {
-      heat: 0,
-      cold: 0,
-      dry: 0,
-      moist: 0
+    const humorScores = {
+      dam: 0,
+      safra: 0,
+      balgham: 0,
+      sauda: 0
     };
 
-    // Calculate scores from responses
+    const thermalScores = { heat: 0, cold: 0 };
+    const moistureScores = { dry: 0, moist: 0 };
+
+    // Track digestive answers for digestive strength calculation
+    let digestiveQ16Answer = null;
+    let digestiveQ17Answer = null;
+
+    // Calculate scores from responses with category weighting
     Object.entries(responses).forEach(([questionId, answer]) => {
-      if (answer) {
-        scores.heat += answer.heat || 0;
-        scores.cold += answer.cold || 0;
-        scores.dry += answer.dry || 0;
-        scores.moist += answer.moist || 0;
+      if (answer && answer.humor) {
+        let weight = 1;
+
+        // Apply 2x weight to humor_symptoms (Q11-Q15) and digestive_organ (Q16-Q20)
+        const qNum = parseInt(questionId.replace('un_q', ''));
+        if (qNum >= 11 && qNum <= 20) {
+          weight = 2;
+        }
+
+        // Accumulate humor score
+        humorScores[answer.humor] = (humorScores[answer.humor] || 0) + weight;
+
+        // Also track thermal and moisture for compatibility
+        thermalScores.heat += (answer.heat || 0) * weight;
+        thermalScores.cold += (answer.cold || 0) * weight;
+        moistureScores.dry += (answer.dry || 0) * weight;
+        moistureScores.moist += (answer.moist || 0) * weight;
+
+        // Track digestive questions for digestive strength
+        if (questionId === 'un_q16') digestiveQ16Answer = answer.humor;
+        if (questionId === 'un_q17') digestiveQ17Answer = answer.humor;
       }
     });
 
-    // Determine thermal tendency
-    const thermalScore = scores.heat - scores.cold;
-    const thermal = thermalScore > 0 ? 'hot' : 'cold';
-    const thermalIntensity = Math.abs(thermalScore);
+    // Sort humors by score to find primary and secondary
+    const sortedHumors = Object.entries(humorScores)
+      .sort(([, a], [, b]) => b - a);
 
-    // Determine moisture tendency
-    const moistureScore = scores.moist - scores.dry;
-    const moisture = moistureScore > 0 ? 'moist' : 'dry';
-    const moistureIntensity = Math.abs(moistureScore);
+    const primaryHumor = sortedHumors[0][0];
+    const primaryScore = sortedHumors[0][1];
+    const secondaryHumor = sortedHumors[1][0];
+    const secondaryScore = sortedHumors[1][1];
 
-    // Classify Mizaj type
-    const mizajType = this._classifyMizaj(thermal, moisture);
+    // Calculate severity based on score difference
+    const scoreDifference = primaryScore - secondaryScore;
+    let severity = 1; // Mild
+    if (scoreDifference >= 5) severity = 3; // Severe
+    else if (scoreDifference >= 3) severity = 2; // Moderate
+
+    // Calculate digestive strength
+    const digestiveStrength = this._calculateDigestiveStrength(digestiveQ16Answer, digestiveQ17Answer);
+
+    // Determine thermal and moisture tendencies
+    const thermal = thermalScores.heat > thermalScores.cold ? 'hot' : 'cold';
+    const moisture = moistureScores.moist > moistureScores.dry ? 'moist' : 'dry';
 
     return {
-      mizaj_type: mizajType,
+      primary_mizaj: primaryHumor,
+      secondary_mizaj: secondaryHumor,
+      dominant_humor: primaryHumor,
+      severity: severity,
+      digestive_strength: digestiveStrength,
+      humor_scores: humorScores,
       thermal_tendency: thermal,
-      thermal_score: thermalIntensity,
       moisture_tendency: moisture,
-      moisture_score: moistureIntensity,
-      raw_scores: scores,
-      balance_indicator: this._getBalanceIndicator(thermalIntensity, moistureIntensity)
+      balance_indicator: this._getSeverityLabel(severity),
+      score_difference: scoreDifference
     };
   }
 
   /**
-   * Classify Mizaj based on thermal and moisture tendencies
+   * Calculate digestive strength based on Q16 and Q17
    */
-  _classifyMizaj(thermal, moisture) {
-    if (thermal === 'hot' && moisture === 'moist') return 'damvi';
-    if (thermal === 'hot' && moisture === 'dry') return 'safravi';
-    if (thermal === 'cold' && moisture === 'moist') return 'balghami';
-    if (thermal === 'cold' && moisture === 'dry') return 'saudavi';
-    return 'balanced'; // Edge case
+  _calculateDigestiveStrength(q16Answer, q17Answer) {
+    // Based on the user's specification:
+    // A (Dam) → strong
+    // B (Safra) → strong but hot
+    // C (Balgham) → slow
+    // D (Sauda) → weak
+
+    const digestiveMap = {
+      dam: 'strong',
+      safra: 'strong_but_hot',
+      balgham: 'slow',
+      sauda: 'weak'
+    };
+
+    // Prioritize Q16, but consider Q17
+    const primary = digestiveMap[q16Answer] || 'moderate';
+    const secondary = digestiveMap[q17Answer] || 'moderate';
+
+    // If both indicate same strength, return that
+    if (primary === secondary) return primary;
+
+    // If one is strong/strong_but_hot and other is not weak, lean towards strong
+    if ((primary.includes('strong') && secondary !== 'weak') ||
+        (secondary.includes('strong') && primary !== 'weak')) {
+      return q16Answer === 'safra' || q17Answer === 'safra' ? 'strong_but_hot' : 'strong';
+    }
+
+    // Default to primary (Q16)
+    return primary;
   }
 
   /**
-   * Get balance indicator
+   * Get severity label
    */
-  _getBalanceIndicator(thermalIntensity, moistureIntensity) {
-    const total = thermalIntensity + moistureIntensity;
-    if (total < 5) return 'mild';
-    if (total < 10) return 'moderate';
-    return 'strong';
+  _getSeverityLabel(severity) {
+    const labels = { 1: 'mild', 2: 'moderate', 3: 'severe' };
+    return labels[severity] || 'mild';
   }
 
   /**
@@ -83,22 +146,45 @@ class UnaniEngine {
     const profile = {
       framework: 'unani',
       mizaj: {
-        type: scores.mizaj_type,
+        primary: scores.primary_mizaj,
+        primary_name: this.humorNames[scores.primary_mizaj],
+        secondary: scores.secondary_mizaj,
+        secondary_name: this.humorNames[scores.secondary_mizaj],
         thermal_tendency: scores.thermal_tendency,
         moisture_tendency: scores.moisture_tendency,
-        balance_level: scores.balance_indicator
+        balance_level: scores.balance_indicator,
+        severity: scores.severity
       },
-      qualities: {
-        thermal_score: scores.thermal_score,
-        moisture_score: scores.moisture_score
+      humors: {
+        dominant: scores.dominant_humor,
+        scores: scores.humor_scores,
+        difference: scores.score_difference
       },
-      characteristics: this._getMizajCharacteristics(scores.mizaj_type),
-      dietary_guidelines: this._getDietaryGuidelines(scores.mizaj_type),
-      lifestyle_recommendations: this._getLifestyleRecommendations(scores.mizaj_type),
-      balancing_approach: this._getBalancingApproach(scores.mizaj_type)
+      digestive_profile: {
+        strength: scores.digestive_strength,
+        description: this._getDigestiveDescription(scores.digestive_strength)
+      },
+      characteristics: this._getHumorCharacteristics(scores.primary_mizaj),
+      dietary_guidelines: this._getDietaryGuidelines(scores.primary_mizaj),
+      lifestyle_recommendations: this._getLifestyleRecommendations(scores.primary_mizaj),
+      balancing_approach: this._getBalancingApproach(scores.primary_mizaj)
     };
 
     return profile;
+  }
+
+  /**
+   * Get digestive description
+   */
+  _getDigestiveDescription(strength) {
+    const descriptions = {
+      strong: 'Strong digestive fire, good appetite and metabolism',
+      strong_but_hot: 'Strong digestion but prone to heat and acidity',
+      slow: 'Slow digestion, needs lighter, easier-to-digest foods',
+      weak: 'Weak digestive capacity, requires careful food choices',
+      moderate: 'Moderate digestive strength, balanced approach needed'
+    };
+    return descriptions[strength] || descriptions.moderate;
   }
 
   /**
@@ -106,13 +192,15 @@ class UnaniEngine {
    */
   generateNutritionInputs(scores, healthProfile) {
     const inputs = {
-      mizaj_type: scores.mizaj_type,
+      mizaj_type: scores.primary_mizaj,
+      dominant_humor: scores.dominant_humor,
       thermal_balance: this._getThermalBalance(scores.thermal_tendency),
       moisture_balance: this._getMoistureBalance(scores.moisture_tendency),
-      food_qualities: this._getFoodQualities(scores.mizaj_type),
-      avoid_foods: this._getAvoidFoods(scores.mizaj_type),
-      recommended_herbs: this._getRecommendedHerbs(scores.mizaj_type),
-      meal_structure: this._getMealStructure(scores.mizaj_type)
+      digestive_strength: scores.digestive_strength,
+      food_qualities: this._getFoodQualities(scores.primary_mizaj),
+      avoid_foods: this._getAvoidFoods(scores.primary_mizaj),
+      recommended_herbs: this._getRecommendedHerbs(scores.primary_mizaj),
+      meal_structure: this._getMealStructure(scores.primary_mizaj)
     };
 
     return inputs;
@@ -133,13 +221,8 @@ class UnaniEngine {
 
     // Validate answer format
     Object.entries(responses).forEach(([qId, answer]) => {
-      const validKeys = ['heat', 'cold', 'dry', 'moist'];
-      const hasValidKey = validKeys.some(key => 
-        answer.hasOwnProperty(key) && (answer[key] === 0 || answer[key] === 1)
-      );
-      
-      if (!hasValidKey) {
-        errors.push(`Invalid answer format for question ${qId}`);
+      if (!answer.humor || !this.humorTypes.includes(answer.humor)) {
+        errors.push(`Invalid humor type for question ${qId}`);
       }
     });
 
@@ -150,104 +233,108 @@ class UnaniEngine {
   }
 
   // Helper methods
-  _getMizajCharacteristics(mizajType) {
+  _getHumorCharacteristics(humor) {
     const characteristics = {
-      damvi: {
-        temperament: 'Hot & Moist (Sanguine)',
-        physical: ['Strong constitution', 'Good complexion', 'Warm body', 'Quick metabolism'],
-        mental: ['Cheerful', 'Sociable', 'Optimistic', 'Quick learner'],
-        digestion: ['Strong appetite', 'Good digestion', 'Regular elimination']
+      dam: {
+        temperament: 'Dam - Hot & Moist (Sanguine)',
+        physical: ['Strong constitution', 'Good complexion', 'Warm body', 'Quick metabolism', 'Flexible joints'],
+        mental: ['Cheerful', 'Sociable', 'Optimistic', 'Quick learner', 'Active'],
+        digestion: ['Strong appetite', 'Good digestion', 'Regular elimination', 'Balanced'],
+        common_issues: ['Redness', 'Fullness', 'Occasional fever']
       },
-      safravi: {
-        temperament: 'Hot & Dry (Choleric)',
-        physical: ['Lean build', 'Warm & dry skin', 'High energy', 'Fast metabolism'],
-        mental: ['Ambitious', 'Quick-tempered', 'Decisive', 'Intense focus'],
-        digestion: ['Strong hunger', 'Can handle heavy foods', 'Prone to acidity']
+      safra: {
+        temperament: 'Safra - Hot & Dry (Choleric)',
+        physical: ['Lean build', 'Warm & dry skin', 'High energy', 'Fast metabolism', 'Hot extremities'],
+        mental: ['Ambitious', 'Quick-tempered', 'Decisive', 'Intense focus', 'Sharp mind'],
+        digestion: ['Strong hunger', 'Fast digestion', 'Prone to acidity', 'Excessive thirst'],
+        common_issues: ['Burning', 'Acidity', 'High fever', 'Impatience']
       },
-      balghami: {
-        temperament: 'Cold & Moist (Phlegmatic)',
-        physical: ['Solid build', 'Cool & moist skin', 'Steady energy', 'Slow metabolism'],
-        mental: ['Calm', 'Patient', 'Methodical', 'Good memory'],
-        digestion: ['Moderate appetite', 'Slow digestion', 'Tendency for mucus']
+      balgham: {
+        temperament: 'Balgham - Cold & Moist (Phlegmatic)',
+        physical: ['Solid build', 'Cool & moist skin', 'Steady energy', 'Slow metabolism', 'Heavy feeling'],
+        mental: ['Calm', 'Patient', 'Methodical', 'Good memory', 'Slow but steady'],
+        digestion: ['Moderate appetite', 'Slow digestion', 'Heaviness after meals', 'Mucus tendency'],
+        common_issues: ['Cold', 'Cough', 'Sinus congestion', 'Sluggishness']
       },
-      saudavi: {
-        temperament: 'Cold & Dry (Melancholic)',
-        physical: ['Thin to medium build', 'Cool & dry skin', 'Variable energy', 'Slow metabolism'],
-        mental: ['Analytical', 'Perfectionist', 'Cautious', 'Deep thinker'],
-        digestion: ['Variable appetite', 'Sensitive digestion', 'Prone to constipation']
+      sauda: {
+        temperament: 'Sauda - Cold & Dry (Melancholic)',
+        physical: ['Thin to medium build', 'Cool & dry skin', 'Variable energy', 'Slow metabolism', 'Dry joints'],
+        mental: ['Analytical', 'Perfectionist', 'Cautious', 'Deep thinker', 'Serious'],
+        digestion: ['Variable appetite', 'Sensitive digestion', 'Constipation prone', 'Bloating'],
+        common_issues: ['Dark circles', 'Constipation', 'Weakness', 'Worry']
       }
     };
-    return characteristics[mizajType] || characteristics.damvi;
+    return characteristics[humor] || characteristics.dam;
   }
 
-  _getDietaryGuidelines(mizajType) {
+  _getDietaryGuidelines(humor) {
     const guidelines = {
-      damvi: {
-        favor: ['Cooling foods', 'Fresh fruits', 'Vegetables', 'Light proteins'],
+      dam: {
+        favor: ['Cooling foods', 'Fresh fruits', 'Vegetables', 'Light proteins', 'Moderate portions'],
         avoid: ['Excessive hot spices', 'Heavy meats', 'Overeating', 'Rich desserts'],
         qualities: 'Cool, light, fresh foods in moderation',
         timing: 'Regular meals, avoid late-night eating'
       },
-      safravi: {
-        favor: ['Cooling foods', 'Sweet fruits', 'Leafy greens', 'Whole grains'],
-        avoid: ['Very hot foods', 'Fried items', 'Red meat', 'Alcohol'],
+      safra: {
+        favor: ['Cooling foods', 'Sweet fruits', 'Leafy greens', 'Whole grains', 'Coconut water'],
+        avoid: ['Very hot foods', 'Fried items', 'Red meat', 'Alcohol', 'Excessive salt'],
         qualities: 'Cool and moist, calming foods',
         timing: 'Regular intervals, never skip meals'
       },
-      balghami: {
-        favor: ['Warming spices', 'Light foods', 'Bitter greens', 'Dry-cooked foods'],
-        avoid: ['Cold drinks', 'Dairy products', 'Sweet foods', 'Heavy meals'],
+      balgham: {
+        favor: ['Warming spices', 'Light foods', 'Bitter greens', 'Dry-cooked foods', 'Honey'],
+        avoid: ['Cold drinks', 'Dairy products', 'Sweet foods', 'Heavy meals', 'Oily foods'],
         qualities: 'Warm, dry, light, and stimulating',
         timing: 'Light breakfast or skip, moderate lunch, light dinner'
       },
-      saudavi: {
-        favor: ['Warming foods', 'Cooked vegetables', 'Healthy fats', 'Warm liquids'],
-        avoid: ['Cold foods', 'Dry crackers', 'Excessive raw foods', 'Cold drinks'],
+      sauda: {
+        favor: ['Warming foods', 'Cooked vegetables', 'Healthy fats', 'Warm liquids', 'Dates'],
+        avoid: ['Cold foods', 'Dry crackers', 'Excessive raw foods', 'Cold drinks', 'Leftovers'],
         qualities: 'Warm, moist, nourishing foods',
         timing: 'Regular warm meals, avoid cold foods'
       }
     };
-    return guidelines[mizajType] || guidelines.damvi;
+    return guidelines[humor] || guidelines.dam;
   }
 
-  _getLifestyleRecommendations(mizajType) {
+  _getLifestyleRecommendations(humor) {
     const recommendations = {
-      damvi: {
+      dam: {
         exercise: 'Moderate, regular activity',
         sleep: '7-8 hours, avoid oversleeping',
         stress: 'Social activities, outdoor time',
         environment: 'Cool, airy, not overly warm'
       },
-      safravi: {
+      safra: {
         exercise: 'Cooling activities, swimming, evening walks',
         sleep: 'Sufficient rest, cool bedroom',
         stress: 'Calming practices, avoid conflict',
         environment: 'Cool, peaceful, serene'
       },
-      balghami: {
+      balgham: {
         exercise: 'Vigorous, daily activity to stimulate',
         sleep: '6-7 hours, wake early',
         stress: 'Active engagement, variety',
         environment: 'Warm, dry, stimulating'
       },
-      saudavi: {
+      sauda: {
         exercise: 'Gentle to moderate, warming yoga',
         sleep: 'Regular schedule, warm bedroom',
         stress: 'Warming activities, social connection',
         environment: 'Warm, moist, comforting'
       }
     };
-    return recommendations[mizajType] || recommendations.damvi;
+    return recommendations[humor] || recommendations.dam;
   }
 
-  _getBalancingApproach(mizajType) {
+  _getBalancingApproach(humor) {
     const approaches = {
-      damvi: 'Balance excess heat and moisture with cooling, light foods',
-      safravi: 'Balance heat and dryness with cooling, moistening foods',
-      balghami: 'Balance cold and moisture with warming, drying foods',
-      saudavi: 'Balance cold and dryness with warming, moistening foods'
+      dam: 'Balance excess heat and moisture with cooling, light foods',
+      safra: 'Balance heat and dryness with cooling, moistening foods',
+      balgham: 'Balance cold and moisture with warming, drying foods',
+      sauda: 'Balance cold and dryness with warming, moistening foods'
     };
-    return approaches[mizajType] || 'Maintain balance through appropriate diet';
+    return approaches[humor] || 'Maintain balance through appropriate diet';
   }
 
   _getThermalBalance(thermal) {
@@ -258,60 +345,60 @@ class UnaniEngine {
     return moisture === 'moist' ? 'needs_drying' : 'needs_moistening';
   }
 
-  _getFoodQualities(mizajType) {
+  _getFoodQualities(humor) {
     const qualities = {
-      damvi: ['cooling', 'light', 'fresh', 'moderate'],
-      safravi: ['cooling', 'moist', 'sweet', 'calming'],
-      balghami: ['warming', 'dry', 'light', 'stimulating'],
-      saudavi: ['warming', 'moist', 'nourishing', 'grounding']
+      dam: ['cooling', 'light', 'fresh', 'moderate'],
+      safra: ['cooling', 'moist', 'sweet', 'calming'],
+      balgham: ['warming', 'dry', 'light', 'stimulating'],
+      sauda: ['warming', 'moist', 'nourishing', 'grounding']
     };
-    return qualities[mizajType] || [];
+    return qualities[humor] || [];
   }
 
-  _getAvoidFoods(mizajType) {
+  _getAvoidFoods(humor) {
     const avoid = {
-      damvi: ['excessive_spicy', 'heavy_meats', 'fried_foods', 'alcohol'],
-      safravi: ['hot_spices', 'sour_foods', 'salty_foods', 'red_meat'],
-      balghami: ['cold_drinks', 'dairy', 'sweets', 'heavy_foods'],
-      saudavi: ['cold_foods', 'dry_foods', 'raw_vegetables', 'ice_cream']
+      dam: ['excessive_spicy', 'heavy_meats', 'fried_foods', 'alcohol'],
+      safra: ['hot_spices', 'sour_foods', 'salty_foods', 'red_meat'],
+      balgham: ['cold_drinks', 'dairy', 'sweets', 'heavy_foods'],
+      sauda: ['cold_foods', 'dry_foods', 'raw_vegetables', 'ice_cream']
     };
-    return avoid[mizajType] || [];
+    return avoid[humor] || [];
   }
 
-  _getRecommendedHerbs(mizajType) {
+  _getRecommendedHerbs(humor) {
     const herbs = {
-      damvi: ['mint', 'coriander', 'fennel', 'rose'],
-      safravi: ['sandalwood', 'cardamom', 'cinnamon', 'licorice'],
-      balghami: ['ginger', 'black_pepper', 'turmeric', 'cinnamon'],
-      saudavi: ['saffron', 'ginger', 'cardamom', 'fennel']
+      dam: ['mint', 'coriander', 'fennel', 'rose'],
+      safra: ['sandalwood', 'cardamom', 'chicory', 'licorice'],
+      balgham: ['ginger', 'black_pepper', 'turmeric', 'cinnamon'],
+      sauda: ['saffron', 'ginger', 'cardamom', 'fennel']
     };
-    return herbs[mizajType] || [];
+    return herbs[humor] || [];
   }
 
-  _getMealStructure(mizajType) {
+  _getMealStructure(humor) {
     const structure = {
-      damvi: {
+      dam: {
         breakfast: 'light_moderate',
         lunch: 'main_meal',
         dinner: 'light'
       },
-      safravi: {
+      safra: {
         breakfast: 'moderate',
         lunch: 'main_meal',
         dinner: 'moderate'
       },
-      balghami: {
+      balgham: {
         breakfast: 'skip_or_light',
         lunch: 'main_meal',
         dinner: 'very_light'
       },
-      saudavi: {
+      sauda: {
         breakfast: 'warm_nourishing',
         lunch: 'main_meal',
         dinner: 'warm_light'
       }
     };
-    return structure[mizajType] || structure.damvi;
+    return structure[humor] || structure.dam;
   }
 }
 

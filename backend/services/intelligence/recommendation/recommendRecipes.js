@@ -28,9 +28,9 @@ const recommendRecipes = async (user, options = {}) => {
       return [];
     }
 
-    // Score each recipe
-    const scoredRecipes = recipes.map(recipe => {
-      const scoreResult = calculateRecipeScore(user, recipe);
+    // Score each recipe (calculateRecipeScore is async, so we need to await all)
+    const scoringPromises = recipes.map(async (recipe) => {
+      const scoreResult = await calculateRecipeScore(user, recipe);
       
       return {
         recipeId: recipe._id,
@@ -52,6 +52,8 @@ const recommendRecipes = async (user, options = {}) => {
         }
       };
     });
+
+    const scoredRecipes = await Promise.all(scoringPromises);
 
     // Filter out blocked recipes
     const unblocked = scoredRecipes.filter(recipe => !recipe.blocked);

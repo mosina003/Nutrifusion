@@ -27,10 +27,15 @@ class AyurvedaEngine {
     // Calculate Agni (from Q7-Q12: digestion only)
     const agni = this._calculateAgni(responses);
 
+    // Calculate severity based on imbalance (1-3 scale)
+    const severity = this._calculateSeverity(prakriti, vikriti);
+
     return {
       prakriti,
       vikriti,
       agni,
+      dominant_dosha: vikriti.dominant,  // For diet engine compatibility
+      severity,                          // For diet engine compatibility
       interpretation: this._generateInterpretation(prakriti, vikriti, agni)
     };
   }
@@ -165,6 +170,47 @@ class AyurvedaEngine {
     };
 
     return agniTypes[dominantDosha];
+  }
+
+  /**
+   * Calculate severity of dosha imbalance (1-3 scale)
+   * @param {Object} prakriti - Baseline constitution
+   * @param {Object} vikriti - Current state
+   * @returns {number} Severity score (1 = mild, 2 = moderate, 3 = severe)
+   */
+  _calculateSeverity(prakriti, vikriti) {
+    // If vikriti is balanced, severity is low
+    if (vikriti.is_balanced) {
+      return 1;
+    }
+
+    // Calculate total score difference between prakriti and vikriti
+    const vataTotal = prakriti.raw_scores.vata;
+    const pittaTotal = prakriti.raw_scores.pitta;
+    const kaphaTotal = prakriti.raw_scores.kapha;
+
+    const vikVata = vikriti.scores.vata;
+    const vikPitta = vikriti.scores.pitta;
+    const vikKapha = vikriti.scores.kapha;
+
+    // Check if dominant vikriti dosha is different from prakriti primary
+    if (prakriti.primary !== vikriti.dominant) {
+      // Strong imbalance - different dominant dosha
+      return 3;
+    }
+
+    // Calculate proportion of dominant dosha in vikriti (out of 9 vikriti questions)
+    const dominantScore = vikriti.scores[vikriti.dominant];
+    const totalVikritiQuestions = 9;
+
+    // If dominant dosha is > 55% of vikriti responses (5+ out of 9)
+    if (dominantScore >= 5) {
+      return 3; // Severe
+    } else if (dominantScore >= 4) {
+      return 2; // Moderate
+    } else {
+      return 1; // Mild
+    }
   }
 
   /**

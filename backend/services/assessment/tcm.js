@@ -1,85 +1,200 @@
 /**
  * Traditional Chinese Medicine (TCM) Assessment Engine
- * Identifies dominant pattern imbalances (Yin/Yang, Heat/Damp, Qi)
+ * Pattern-based diagnosis focusing on:
+ * - Cold/Heat patterns
+ * - Qi deficiency/excess
+ * - Dampness/Dryness
+ * - Liver Qi stagnation/Heat
  */
 
 class TCMEngine {
   constructor() {
-    this.patterns = ['yin_deficiency', 'yang_deficiency', 'heat_excess', 'damp_accumulation', 'qi_deficiency'];
+    this.patternTypes = [
+      'Cold Pattern',
+      'Heat Pattern',
+      'Qi Deficiency',
+      'Qi Excess',
+      'Dampness',
+      'Dryness',
+      'Liver Qi Stagnation',
+      'Liver Heat',
+      'Yin Deficiency',
+      'Yang Deficiency'
+    ];
   }
 
   /**
-   * Score TCM assessment responses
+   * Score TCM assessment responses based on pattern recognition
    * @param {Object} responses - User responses with question IDs and answers
-   * @returns {Object} Scored health profile
+   * @returns {Object} Pattern analysis with primary/secondary patterns
    */
   score(responses) {
-    const scores = {
-      yin_deficiency: 0,
-      yang_deficiency: 0,
-      heat_excess: 0,
-      damp_accumulation: 0,
-      qi_deficiency: 0
+    const patternCounts = {
+      cold: 0,
+      heat: 0,
+      qi_deficiency: 0,
+      qi_excess: 0,
+      dampness: 0,
+      dryness: 0,
+      qi_stagnation: 0,
+      liver_heat: 0,
+      balanced: 0
     };
 
-    // Calculate pattern scores
+    const sectionScores = {
+      A: { cold: 0, heat: 0, balanced: 0 },
+      B: { qi_deficiency: 0, qi_excess: 0, heat: 0, balanced: 0 },
+      C: { dampness: 0, heat: 0, balanced: 0 },
+      D: { qi_stagnation: 0, heat: 0, qi_deficiency: 0, cold: 0, balanced: 0 }
+    };
+
+    // Process each response
     Object.entries(responses).forEach(([questionId, answer]) => {
-      if (answer) {
-        scores.yin_deficiency += answer.yin || 0;
-        scores.yang_deficiency += answer.yang || 0;
-        scores.heat_excess += answer.heat || 0;
-        scores.damp_accumulation += answer.damp || 0;
-        scores.qi_deficiency += answer.qi_deficiency || 0;
+      if (!answer || !answer.pattern || !answer.weight) return;
+
+      const pattern = answer.pattern;
+      const weight = answer.weight;
+      const section = answer.section || this._getSection(questionId);
+
+      // Increment pattern count
+      if (patternCounts.hasOwnProperty(pattern)) {
+        patternCounts[pattern] += weight;
+      }
+
+      // Track by section for detailed analysis
+      if (section && sectionScores[section]) {
+        if (sectionScores[section].hasOwnProperty(pattern)) {
+          sectionScores[section][pattern] += weight;
+        }
       }
     });
 
-    // Sort patterns by score
-    const sortedPatterns = Object.entries(scores)
-      .sort((a, b) => b[1] - a[1])
-      .filter(([_, score]) => score > 0);
+    // Determine Cold/Heat tendency (Section A)
+    const coldHeatResult = this._determineColdHeat(sectionScores.A);
 
-    // Identify dominant and secondary patterns
-    const dominantPattern = sortedPatterns[0] ? sortedPatterns[0][0] : 'balanced';
-    const dominantScore = sortedPatterns[0] ? sortedPatterns[0][1] : 0;
-    
-    // Secondary pattern if significant (>= 70% of dominant score)
-    const secondaryPattern = sortedPatterns[1] && sortedPatterns[1][1] >= (dominantScore * 0.7)
-      ? sortedPatterns[1][0]
-      : null;
+    // Determine Qi pattern (Section B)
+    const qiPattern = this._determineQiPattern(sectionScores.B);
+
+    // Determine Dampness pattern (Section C)
+    const dampnessPattern = this._determineDampnessPattern(sectionScores.C);
+
+    // Determine Liver pattern (Section D)
+    const liverPattern = this._determineLiverPattern(sectionScores.D);
+
+    // Aggregate all patterns to find primary and secondary
+    const aggregatedPatterns = {
+      'Cold Pattern': patternCounts.cold,
+      'Heat Pattern': patternCounts.heat,
+      'Qi Deficiency': patternCounts.qi_deficiency,
+      'Qi Excess': patternCounts.qi_excess || patternCounts.heat, // Heat can indicate Qi excess
+      'Dampness': patternCounts.dampness,
+      'Dryness': patternCounts.heat, // Heat often causes dryness
+      'Liver Qi Stagnation': patternCounts.qi_stagnation,
+      'Liver Heat': patternCounts.heat, // From section D
+      'Yin Deficiency': Math.max(patternCounts.heat, 0),
+      'Yang Deficiency': patternCounts.cold + patternCounts.qi_deficiency
+    };
+
+    // Sort patterns by score
+    const sortedPatterns = Object.entries(aggregatedPatterns)
+      .sort(([, a], [, b]) => b - a)
+      .filter(([, score]) => score > 0);
+
+    const primaryPattern = sortedPatterns[0] ? sortedPatterns[0][0] : 'Balanced';
+    const primaryScore = sortedPatterns[0] ? sortedPatterns[0][1] : 0;
+    const secondaryPattern = sortedPatterns[1] ? sortedPatterns[1][0] : null;
+    const secondaryScore = sortedPatterns[1] ? sortedPatterns[1][1] : 0;
+
+    // Calculate severity (1-3 scale)
+    const scoreDifference = primaryScore - secondaryScore;
+    let severity = 1; // Mild
+    if (scoreDifference >= 5) severity = 3; // Strong
+    else if (scoreDifference >= 3) severity = 2; // Moderate
 
     return {
-      dominant_pattern: dominantPattern,
-      dominant_score: dominantScore,
+      primary_pattern: primaryPattern,
       secondary_pattern: secondaryPattern,
-      secondary_score: secondaryPattern ? sortedPatterns[1][1] : null,
-      all_scores: scores,
-      pattern_description: this._getPatternDescription(dominantPattern),
-      severity: this._getSeverity(dominantScore)
+      cold_heat: coldHeatResult,
+      severity: severity,
+      pattern_scores: aggregatedPatterns,
+      section_analysis: {
+        cold_heat: coldHeatResult,
+        qi: qiPattern,
+        dampness: dampnessPattern,
+        liver: liverPattern
+      },
+      score_difference: scoreDifference,
+      balance_indicator: this._getSeverityLabel(severity)
     };
   }
 
   /**
-   * Get severity level based on score
+   * Get section from question ID
    */
-  _getSeverity(score) {
-    if (score < 10) return 'mild';
-    if (score < 20) return 'moderate';
-    return 'significant';
+  _getSection(questionId) {
+    const qNum = parseInt(questionId.replace('tcm_q', ''));
+    if (qNum >= 1 && qNum <= 5) return 'A';
+    if (qNum >= 6 && qNum <= 10) return 'B';
+    if (qNum >= 11 && qNum <= 15) return 'C';
+    if (qNum >= 16 && qNum <= 20) return 'D';
+    return null;
   }
 
   /**
-   * Get pattern description
+   * Determine Cold/Heat pattern from Section A
    */
-  _getPatternDescription(pattern) {
-    const descriptions = {
-      yin_deficiency: 'Yin Deficiency - Lack of cooling, nourishing essence',
-      yang_deficiency: 'Yang Deficiency - Lack of warming, activating energy',
-      heat_excess: 'Heat Excess - Excessive internal heat',
-      damp_accumulation: 'Damp Accumulation - Excessive fluid retention',
-      qi_deficiency: 'Qi Deficiency - Lack of vital energy',
-      balanced: 'Balanced - No significant pattern identified'
-    };
-    return descriptions[pattern] || descriptions.balanced;
+  _determineColdHeat(sectionA) {
+    const { cold, heat, balanced } = sectionA;
+    
+    if (balanced > cold && balanced > heat) return 'Balanced';
+    if (cold > heat) return 'Cold';
+    if (heat > cold) return 'Heat';
+    return 'Balanced';
+  }
+
+  /**
+   * Determine Qi pattern from Section B
+   */
+  _determineQiPattern(sectionB) {
+    const { qi_deficiency, heat, balanced } = sectionB;
+    const qi_excess = heat; // Heat symptoms in section B indicate Qi excess
+    
+    if (balanced > qi_deficiency && balanced > qi_excess) return 'Balanced';
+    if (qi_deficiency > qi_excess) return 'Qi Deficiency';
+    if (qi_excess > qi_deficiency) return 'Qi Excess';
+    return 'Balanced';
+  }
+
+  /**
+   * Determine Dampness pattern from Section C
+   */
+  _determineDampnessPattern(sectionC) {
+    const { dampness, heat, balanced } = sectionC;
+    
+    if (balanced > dampness && balanced > heat) return 'Balanced';
+    if (dampness > heat) return 'Dampness';
+    if (heat > dampness) return 'Heat/Dryness';
+    return 'Balanced';
+  }
+
+  /**
+   * Determine Liver pattern from Section D
+   */
+  _determineLiverPattern(sectionD) {
+    const { qi_stagnation, heat, balanced } = sectionD;
+    
+    if (balanced > qi_stagnation && balanced > heat) return 'Balanced';
+    if (qi_stagnation > heat) return 'Liver Qi Stagnation';
+    if (heat > qi_stagnation) return 'Liver Heat';
+    return 'Balanced';
+  }
+
+  /**
+   * Get severity label
+   */
+  _getSeverityLabel(severity) {
+    const labels = { 1: 'mild', 2: 'moderate', 3: 'strong' };
+    return labels[severity] || 'mild';
   }
 
   /**
@@ -89,301 +204,55 @@ class TCMEngine {
     const profile = {
       framework: 'tcm',
       pattern: {
-        dominant: scores.dominant_pattern,
+        primary: scores.primary_pattern,
         secondary: scores.secondary_pattern,
-        severity: scores.severity
+        cold_heat_tendency: scores.cold_heat,
+        severity: scores.severity,
+        balance_status: scores.balance_indicator
       },
-      scores: scores.all_scores,
-      characteristics: this._getPatternCharacteristics(scores.dominant_pattern),
-      dietary_guidelines: this._getDietaryGuidelines(scores.dominant_pattern, scores.secondary_pattern),
-      lifestyle_recommendations: this._getLifestyleRecommendations(scores.dominant_pattern),
-      organ_systems: this._getAffectedOrgans(scores.dominant_pattern),
-      balancing_strategy: this._getBalancingStrategy(scores.dominant_pattern, scores.secondary_pattern)
+      section_analysis: scores.section_analysis,
+      detailed_patterns: scores.pattern_scores,
+      recommendations: this._generateRecommendations(scores),
+      timestamp: new Date().toISOString()
     };
 
     return profile;
   }
 
   /**
-   * Generate nutrition inputs for recommendation engine
+   * Generate basic recommendations based on patterns
    */
-  generateNutritionInputs(scores, healthProfile) {
-    const inputs = {
-      primary_pattern: scores.dominant_pattern,
-      secondary_pattern: scores.secondary_pattern,
-      food_energetics: this._getFoodEnergetics(scores.dominant_pattern),
-      healing_foods: this._getHealingFoods(scores.dominant_pattern),
-      avoid_foods: this._getAvoidFoods(scores.dominant_pattern),
-      cooking_methods: this._getCookingMethods(scores.dominant_pattern),
-      herbs_and_spices: this._getHerbsAndSpices(scores.dominant_pattern),
-      meal_composition: this._getMealComposition(scores.dominant_pattern)
-    };
+  _generateRecommendations(scores) {
+    const recommendations = [];
 
-    return inputs;
-  }
-
-  /**
-   * Validate responses before scoring
-   */
-  validateResponses(responses, requiredQuestions) {
-    const errors = [];
-
-    // Check if all required questions are answered
-    requiredQuestions.forEach(qId => {
-      if (!responses[qId]) {
-        errors.push(`Question ${qId} is required`);
-      }
-    });
-
-    // Validate answer format
-    Object.entries(responses).forEach(([qId, answer]) => {
-      const validKeys = ['yin', 'yang', 'heat', 'damp', 'qi_deficiency'];
-      const hasValidKey = validKeys.some(key => 
-        answer.hasOwnProperty(key) && typeof answer[key] === 'number' && answer[key] >= 0 && answer[key] <= 2
-      );
-      
-      if (!hasValidKey) {
-        errors.push(`Invalid answer format for question ${qId}`);
-      }
-    });
-
-    return {
-      valid: errors.length === 0,
-      errors
-    };
-  }
-
-  // Helper methods
-  _getPatternCharacteristics(pattern) {
-    const characteristics = {
-      yin_deficiency: {
-        symptoms: ['Dry mouth/throat', 'Night sweats', 'Hot palms/feet', 'Insomnia', 'Afternoon fever'],
-        signs: ['Red tongue, thin coating', 'Rapid, thin pulse', 'Dry skin', 'Constipation'],
-        emotional: ['Anxiety', 'Restlessness', 'Irritability at night']
-      },
-      yang_deficiency: {
-        symptoms: ['Cold hands/feet', 'Low energy', 'Frequent urination', 'Poor circulation', 'Back weakness'],
-        signs: ['Pale tongue, wet coating', 'Slow, weak pulse', 'Weak digestion', 'Weight gain'],
-        emotional: ['Lethargy', 'Lack of motivation', 'Depression']
-      },
-      heat_excess: {
-        symptoms: ['Red face', 'Thirst', 'Yellow urine', 'Strong body odor', 'Inflammation'],
-        signs: ['Red tongue, yellow coating', 'Rapid, strong pulse', 'Redness/rashes', 'Acne'],
-        emotional: ['Agitation', 'Anger', 'Impatience']
-      },
-      damp_accumulation: {
-        symptoms: ['Heavy feeling', 'Bloating', 'Loose stools', 'Foggy thinking', 'Swelling'],
-        signs: ['Swollen tongue, thick coating', 'Slippery pulse', 'Weight gain', 'Mucus'],
-        emotional: ['Mental fog', 'Lethargy', 'Worry']
-      },
-      qi_deficiency: {
-        symptoms: ['Fatigue', 'Weak voice', 'Shortness of breath', 'Poor appetite', 'Frequent colds'],
-        signs: ['Pale tongue', 'Weak pulse', 'Tired appearance', 'Poor muscle tone'],
-        emotional: ['Sadness', 'Lack of enthusiasm', 'Overthinking']
-      },
-      balanced: {
-        symptoms: ['Good energy', 'Balanced temperature', 'Healthy digestion'],
-        signs: ['Pink tongue', 'Regular pulse'],
-        emotional: ['Calm', 'Balanced mood']
-      }
-    };
-    return characteristics[pattern] || characteristics.balanced;
-  }
-
-  _getDietaryGuidelines(primary, secondary) {
-    const guidelines = {
-      yin_deficiency: {
-        favor: ['Cooling foods', 'Moistening foods', 'Black beans', 'Mung beans', 'Pears', 'Watermelon'],
-        avoid: ['Spicy foods', 'Alcohol', 'Coffee', 'Warming spices', 'Fried foods'],
-        cooking: ['Steam', 'Boil', 'Simmer', 'Avoid grilling/roasting'],
-        timing: 'Regular meals, no late-night eating'
-      },
-      yang_deficiency: {
-        favor: ['Warming foods', 'Kidney beans', 'Walnuts', 'Lamb', 'Ginger', 'Cinnamon'],
-        avoid: ['Cold foods', 'Raw foods', 'Ice cream', 'Cold drinks', 'Excess raw vegetables'],
-        cooking: ['Slow cooking', 'Roasting', 'Warming soups', 'Stews'],
-        timing: 'Eat warm foods throughout the day'
-      },
-      heat_excess: {
-        favor: ['Cooling vegetables', 'Bitter greens', 'Cucumber', 'Celery', 'Mung beans'],
-        avoid: ['Spicy foods', 'Alcohol', 'Red meat', 'Garlic', 'Ginger in excess'],
-        cooking: ['Steaming', 'Boiling', 'Raw salads OK', 'Minimal oil'],
-        timing: 'Regular meals, avoid overeating'
-      },
-      damp_accumulation: {
-        favor: ['Diuretic foods', 'Barley', 'Corn', 'Aduki beans', 'Celery', 'Bitter foods'],
-        avoid: ['Dairy', 'Sugar', 'Fried foods', 'Alcohol', 'Wheat', 'Bananas'],
-        cooking: ['Grilling', 'Roasting', 'Drying', 'Minimal oil'],
-        timing: 'Smaller meals, avoid late eating'
-      },
-      qi_deficiency: {
-        favor: ['Easily digestible', 'Rice', 'Sweet potato', 'Chicken', 'Fish', 'Dates'],
-        avoid: ['Cold foods', 'Raw foods', 'Heavy meals', 'Excessive cold drinks'],
-        cooking: ['Gentle cooking', 'Steaming', 'Slow cooking', 'Warm soups'],
-        timing: 'Regular meals, smaller portions'
-      },
-      balanced: {
-        favor: ['Balanced diet', 'Variety of foods', 'Seasonal eating'],
-        avoid: ['Extremes', 'Processed foods'],
-        cooking: ['All methods in moderation'],
-        timing: 'Regular meal times'
-      }
-    };
-
-    const primaryGuidelines = guidelines[primary] || guidelines.balanced;
-    if (secondary && guidelines[secondary]) {
-      return {
-        primary: primaryGuidelines,
-        secondary: guidelines[secondary],
-        note: 'Combine approaches for both patterns'
-      };
+    // Cold/Heat recommendations
+    if (scores.cold_heat === 'Cold') {
+      recommendations.push('Focus on warming foods and avoid cold/raw foods');
+      recommendations.push('Prefer cooked, warm meals over salads and cold beverages');
+    } else if (scores.cold_heat === 'Heat') {
+      recommendations.push('Focus on cooling foods and avoid hot/spicy foods');
+      recommendations.push('Include more cool-natured vegetables and fruits');
     }
 
-    return primaryGuidelines;
-  }
-
-  _getLifestyleRecommendations(pattern) {
-    const recommendations = {
-      yin_deficiency: {
-        exercise: 'Gentle, cooling (swimming, yin yoga, tai chi)',
-        sleep: '8-9 hours, before midnight, dark cool room',
-        stress: 'Meditation, quiet time, avoid overstimulation',
-        timing: 'Rest in afternoon, avoid late nights'
-      },
-      yang_deficiency: {
-        exercise: 'Moderate, warming (brisk walking, gentle yang yoga)',
-        sleep: '8 hours, warm bedroom, wake with sun',
-        stress: 'Gentle activity, warm baths, social connection',
-        timing: 'Stay active during day, rest early evening'
-      },
-      heat_excess: {
-        exercise: 'Cooling activities (swimming, evening walks)',
-        sleep: '7-8 hours, cool bedroom, calm before bed',
-        stress: 'Cooling practices, nature, avoid conflict',
-        timing: 'Avoid midday heat, evening relaxation'
-      },
-      damp_accumulation: {
-        exercise: 'Active movement (jogging, aerobics, vigorous yoga)',
-        sleep: '7-8 hours, well-ventilated room, wake early',
-        stress: 'Active engagement, mental stimulation',
-        timing: 'Morning exercise, avoid afternoon naps'
-      },
-      qi_deficiency: {
-        exercise: 'Gentle to moderate (qigong, walking, light yoga)',
-        sleep: '8-9 hours, regular schedule, rest when tired',
-        stress: 'Rest adequately, avoid overwork, gentle activities',
-        timing: 'Pace activities, take breaks, avoid exhaustion'
-      },
-      balanced: {
-        exercise: 'Balanced, varied activities',
-        sleep: '7-8 hours, regular schedule',
-        stress: 'Balanced approach to work and rest',
-        timing: 'Regular daily routine'
-      }
-    };
-    return recommendations[pattern] || recommendations.balanced;
-  }
-
-  _getAffectedOrgans(pattern) {
-    const organs = {
-      yin_deficiency: ['Kidney', 'Liver', 'Heart'],
-      yang_deficiency: ['Kidney', 'Spleen', 'Heart'],
-      heat_excess: ['Heart', 'Liver', 'Stomach'],
-      damp_accumulation: ['Spleen', 'Stomach', 'Lung'],
-      qi_deficiency: ['Spleen', 'Lung', 'Kidney'],
-      balanced: []
-    };
-    return organs[pattern] || [];
-  }
-
-  _getBalancingStrategy(primary, secondary) {
-    const strategies = {
-      yin_deficiency: 'Nourish Yin, clear deficiency heat, calm spirit',
-      yang_deficiency: 'Tonify Yang, warm the interior, strengthen Kidney',
-      heat_excess: 'Clear heat, cool blood, calm spirit',
-      damp_accumulation: 'Drain dampness, strengthen Spleen, transform phlegm',
-      qi_deficiency: 'Tonify Qi, strengthen Spleen, support digestion',
-      balanced: 'Maintain balance through moderation'
-    };
-
-    let strategy = strategies[primary] || strategies.balanced;
-    if (secondary && strategies[secondary]) {
-      strategy += ` AND ${strategies[secondary]}`;
+    // Qi recommendations
+    if (scores.primary_pattern === 'Qi Deficiency') {
+      recommendations.push('Eat Qi-tonifying foods like whole grains, root vegetables, and lean proteins');
+      recommendations.push('Avoid overeating and eat regular, moderate meals');
     }
 
-    return strategy;
-  }
+    // Dampness recommendations
+    if (scores.primary_pattern === 'Dampness') {
+      recommendations.push('Reduce sweet, greasy, and dairy-heavy foods');
+      recommendations.push('Increase dampness-resolving foods like barley, adzuki beans, and bitter greens');
+    }
 
-  _getFoodEnergetics(pattern) {
-    const energetics = {
-      yin_deficiency: ['cool', 'moist', 'nourishing', 'yin-building'],
-      yang_deficiency: ['warm', 'qi-tonifying', 'yang-building', 'energizing'],
-      heat_excess: ['cool', 'cold', 'bitter', 'heat-clearing'],
-      damp_accumulation: ['warm', 'drying', 'diuretic', 'light'],
-      qi_deficiency: ['neutral', 'sweet', 'qi-tonifying', 'easily_digestible'],
-      balanced: ['balanced', 'varied']
-    };
-    return energetics[pattern] || energetics.balanced;
-  }
+    // Liver recommendations
+    if (scores.section_analysis.liver === 'Liver Qi Stagnation') {
+      recommendations.push('Include Qi-moving foods like citrus, radish, and aromatic herbs');
+      recommendations.push('Practice stress management and regular physical activity');
+    }
 
-  _getHealingFoods(pattern) {
-    const foods = {
-      yin_deficiency: ['mung_beans', 'black_beans', 'tofu', 'pear', 'watermelon', 'spinach', 'eggs'],
-      yang_deficiency: ['lamb', 'walnuts', 'kidney_beans', 'cinnamon', 'ginger', 'chicken', 'shrimp'],
-      heat_excess: ['cucumber', 'celery', 'mung_beans', 'watermelon', 'bitter_melon', 'lettuce'],
-      damp_accumulation: ['barley', 'corn', 'aduki_beans', 'celery', 'turnip', 'green_tea'],
-      qi_deficiency: ['rice', 'sweet_potato', 'chicken', 'dates', 'mushrooms', 'oats', 'trout'],
-      balanced: ['variety_of_whole_foods']
-    };
-    return foods[pattern] || foods.balanced;
-  }
-
-  _getAvoidFoods(pattern) {
-    const avoid = {
-      yin_deficiency: ['hot_spices', 'alcohol', 'coffee', 'deep_fried', 'lamb', 'excessive_garlic'],
-      yang_deficiency: ['ice_cream', 'cold_drinks', 'raw_foods', 'banana', 'excess_cucumber'],
-      heat_excess: ['spicy_foods', 'alcohol', 'red_meat', 'garlic', 'ginger', 'fried_foods'],
-      damp_accumulation: ['dairy', 'sugar', 'fried_foods', 'alcohol', 'wheat', 'banana', 'pork'],
-      qi_deficiency: ['cold_foods', 'raw_foods', 'heavy_meals', 'excessive_fiber'],
-      balanced: ['processed_foods', 'excessive_anything']
-    };
-    return avoid[pattern] || avoid.balanced;
-  }
-
-  _getCookingMethods(pattern) {
-    const methods = {
-      yin_deficiency: ['steaming', 'boiling', 'simmering', 'gentle_cooking'],
-      yang_deficiency: ['slow_cooking', 'roasting', 'baking', 'warming_soups'],
-      heat_excess: ['steaming', 'boiling', 'raw_OK', 'minimal_oil'],
-      damp_accumulation: ['grilling', 'roasting', 'dry_cooking', 'minimal_water'],
-      qi_deficiency: ['steaming', 'slow_cooking', 'soup', 'gentle_methods'],
-      balanced: ['varied_methods']
-    };
-    return methods[pattern] || methods.balanced;
-  }
-
-  _getHerbsAndSpices(pattern) {
-    const herbs = {
-      yin_deficiency: ['mint', 'chrysanthemum', 'goji_berry', 'mulberry', 'licorice'],
-      yang_deficiency: ['ginger', 'cinnamon', 'clove', 'fennel', 'star_anise'],
-      heat_excess: ['mint', 'chrysanthemum', 'dandelion', 'green_tea'],
-      damp_accumulation: ['ginger', 'turmeric', 'cardamom', 'coriander', 'fennel'],
-      qi_deficiency: ['ginseng', 'astragalus', 'date', 'licorice', 'cinnamon'],
-      balanced: ['variety_in_moderation']
-    };
-    return herbs[pattern] || herbs.balanced;
-  }
-
-  _getMealComposition(pattern) {
-    const composition = {
-      yin_deficiency: { grains: 40, vegetables: 35, protein: 20, fruits: 5 },
-      yang_deficiency: { grains: 35, vegetables: 30, protein: 30, healthy_fats: 5 },
-      heat_excess: { grains: 35, vegetables: 45, protein: 15, fruits: 5 },
-      damp_accumulation: { grains: 30, vegetables: 40, protein: 25, minimal_fats: 5 },
-      qi_deficiency: { grains: 40, vegetables: 30, protein: 25, easy_digest: 5 },
-      balanced: { grains: 35, vegetables: 35, protein: 25, healthy_variety: 5 }
-    };
-    return composition[pattern] || composition.balanced;
+    return recommendations;
   }
 }
 
