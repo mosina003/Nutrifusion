@@ -10,6 +10,7 @@ const MedicalCondition = require('./MedicalCondition');
 const SystemConfig = require('./SystemConfig');
 const Assessment = require('./Assessment');
 const UserActivity = require('./UserActivity');
+const MealCompletion = require('./MealCompletion');
 
 module.exports = {
   User,
@@ -22,5 +23,6 @@ module.exports = {
   MedicalCondition,
   SystemConfig,
   Assessment,
-  UserActivity
+  UserActivity,
+  MealCompletion
 };

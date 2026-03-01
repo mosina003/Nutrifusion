@@ -181,11 +181,13 @@ router.get('/profile/complete', protect, authorize('user'), async (req, res) => 
       // Unani framework data
       if (framework === 'unani' && scores) {
         healthIntelligence.unani = {
-          mizaj: scores.mizaj?.type || 'Unknown',
-          heat: scores.mizaj?.heat || 'Unknown',
-          moisture: scores.mizaj?.moisture || 'Unknown',
+          mizaj: scores.primary_mizaj || 'Unknown',
+          secondaryMizaj: scores.secondary_mizaj || null,
+          heat: scores.thermal_tendency || 'Unknown',
+          moisture: scores.moisture_tendency || 'Unknown',
           dominantHumor: scores.dominant_humor || 'Unknown',
-          digestiveStrength: scores.digestive_strength || 'Unknown'
+          digestiveStrength: scores.digestive_strength || 'Unknown',
+          percentages: scores.humor_percentages || {}
         };
       }
 

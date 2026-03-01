@@ -83,6 +83,15 @@ class UnaniEngine {
     const thermal = thermalScores.heat > thermalScores.cold ? 'hot' : 'cold';
     const moisture = moistureScores.moist > moistureScores.dry ? 'moist' : 'dry';
 
+    // Calculate humor percentages
+    const totalScore = Object.values(humorScores).reduce((sum, score) => sum + score, 0);
+    const humorPercentages = {};
+    if (totalScore > 0) {
+      for (const [humor, score] of Object.entries(humorScores)) {
+        humorPercentages[humor] = Math.round((score / totalScore) * 100);
+      }
+    }
+
     return {
       primary_mizaj: primaryHumor,
       secondary_mizaj: secondaryHumor,
@@ -90,6 +99,7 @@ class UnaniEngine {
       severity: severity,
       digestive_strength: digestiveStrength,
       humor_scores: humorScores,
+      humor_percentages: humorPercentages,
       thermal_tendency: thermal,
       moisture_tendency: moisture,
       balance_indicator: this._getSeverityLabel(severity),

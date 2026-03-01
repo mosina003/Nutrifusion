@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { User, LogOut, Settings, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SummaryCards } from '@/components/dashboard/summary-cards'
@@ -15,6 +16,16 @@ import { useRouter } from 'next/navigation'
 export default function DashboardPage() {
   const { user, logout } = useAuth()
   const router = useRouter()
+
+  // Debug: Log user data
+  useEffect(() => {
+    console.log('🔍 Dashboard User Data:', {
+      user,
+      name: user?.name,
+      email: user?.email,
+      fullObject: JSON.stringify(user, null, 2)
+    })
+  }, [user])
 
   return (
     <ProtectedRoute requiredRole="user">
@@ -74,7 +85,9 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8 animate-fade-in">
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome back, {user?.name || 'User'}!</h2>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            Welcome back, {user?.name || user?.email?.split('@')[0] || 'User'}!
+          </h2>
           <p className="text-lg text-slate-600">Today is {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Let's continue your wellness journey.</p>
         </div>
 

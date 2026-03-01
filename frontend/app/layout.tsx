@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Providers } from '@/components/providers'
+import { Toaster } from 'sonner'
 
 import './globals.css'
 
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <Providers>{children}</Providers>
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   )

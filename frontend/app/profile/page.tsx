@@ -336,27 +336,27 @@ export default function ProfilePage() {
               <>
                 <InsightCard 
                   icon={<Droplets className="w-5 h-5" />}
-                  title="Mizaj"
+                  title="Primary Mizaj"
                   value={profile.healthIntelligence.unani.mizaj}
-                  badge={profile.healthIntelligence.unani.mizaj}
+                  badge={`${profile.healthIntelligence.unani.percentages?.[profile.healthIntelligence.unani.mizaj] || 0}%`}
                 />
                 <InsightCard 
                   icon={<Activity className="w-5 h-5" />}
-                  title="Dominant Humor"
-                  value={profile.healthIntelligence.unani.dominantHumor}
-                  badge="Primary"
+                  title="Secondary Mizaj"
+                  value={profile.healthIntelligence.unani.secondaryMizaj || 'Balanced'}
+                  badge={`${profile.healthIntelligence.unani.percentages?.[profile.healthIntelligence.unani.secondaryMizaj] || 0}%`}
                 />
                 <InsightCard 
                   icon={<Zap className="w-5 h-5" />}
                   title="Digestive Strength"
                   value={profile.healthIntelligence.unani.digestiveStrength}
-                  badge={profile.healthIntelligence.unani.digestiveStrength}
+                  badge={profile.healthIntelligence.unani.digestiveStrength === 'strong' ? 'Optimal' : profile.healthIntelligence.unani.digestiveStrength === 'moderate' ? 'Good' : 'Needs Support'}
                 />
                 <InsightCard 
                   icon={<Heart className="w-5 h-5" />}
-                  title="Heat Pattern"
-                  value={profile.healthIntelligence.unani.heat}
-                  badge={profile.healthIntelligence.unani.heat}
+                  title="Temperament"
+                  value={`${profile.healthIntelligence.unani.heat} & ${profile.healthIntelligence.unani.moisture}`}
+                  badge={profile.healthIntelligence.unani.heat === 'hot' ? '🔥 Hot' : '❄️ Cold'}
                 />
               </>
             )}
@@ -413,6 +413,42 @@ export default function ProfilePage() {
                     </p>
                     <p>
                       <strong>Current State (Vikriti):</strong> {profile.healthIntelligence.ayurveda.imbalanceSeverity === 'Balanced' ? '✓ Your doshas are currently balanced!' : `⚠️ ${profile.healthIntelligence.ayurveda.currentDosha} is currently aggravated - focus on balancing foods and lifestyle.`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Unani Constitution Explanation */}
+          {profile.healthIntelligence.framework === 'unani' && profile.healthIntelligence.unani && (
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4 mt-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-orange-500 rounded-full p-2">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-orange-900 mb-2">Understanding Your Temperament</h4>
+                  <div className="text-sm text-orange-800 space-y-2">
+                    <p>
+                      <strong>Your Mizaj (Temperament):</strong> You have <strong>{profile.healthIntelligence.unani.mizaj}</strong> temperament ({profile.healthIntelligence.unani.percentages?.[profile.healthIntelligence.unani.mizaj] || 0}%){profile.healthIntelligence.unani.secondaryMizaj && ` with ${profile.healthIntelligence.unani.secondaryMizaj} as secondary (${profile.healthIntelligence.unani.percentages?.[profile.healthIntelligence.unani.secondaryMizaj] || 0}%)`}, characterized by <strong>{profile.healthIntelligence.unani.heat}</strong> thermal tendency and <strong>{profile.healthIntelligence.unani.moisture}</strong> moisture level.
+                    </p>
+                    <p>
+                      <strong>Your Dominant Humor (Akhlat):</strong> {profile.healthIntelligence.unani.dominantHumor} - 
+                      {profile.healthIntelligence.unani.dominantHumor === 'dam' && ' Blood humor - warm and moist nature.'}
+                      {profile.healthIntelligence.unani.dominantHumor === 'safra' && ' Yellow bile - hot and dry nature.'}
+                      {profile.healthIntelligence.unani.dominantHumor === 'balgham' && ' Phlegm - cold and moist nature.'}
+                      {profile.healthIntelligence.unani.dominantHumor === 'sauda' && ' Black bile - cold and dry nature.'}
+                    </p>
+                    <p>
+                      <strong>Digestive Strength (Quwwat-e-Haazima):</strong> {profile.healthIntelligence.unani.digestiveStrength} - 
+                      {profile.healthIntelligence.unani.digestiveStrength === 'strong' && ' ✓ Strong digestion, can handle most foods.'}
+                      {profile.healthIntelligence.unani.digestiveStrength === 'moderate' && ' Moderate digestion, avoid heavy meals.'}
+                      {profile.healthIntelligence.unani.digestiveStrength === 'slow' && ' ⚠️ Slow digestion, prefer light and warm foods.'}
+                      {profile.healthIntelligence.unani.digestiveStrength === 'weak' && ' ⚠️ Weak digestion, focus on easily digestible foods.'}
+                    </p>
+                    <p className="text-xs text-orange-700 bg-orange-100 border border-orange-300 rounded px-2 py-1 mt-2">
+                      💡 Tip: {profile.healthIntelligence.unani.heat === 'hot' ? 'Balance your hot temperament with cooling foods like cucumber, yogurt, and fruits.' : 'Balance your cold temperament with warming foods like ginger, cinnamon, and soups.'}
                     </p>
                   </div>
                 </div>

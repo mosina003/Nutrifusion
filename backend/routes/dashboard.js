@@ -777,12 +777,22 @@ router.get('/', protect, authorize('user'), async (req, res) => {
       doshaTrend = dominant.percentage > 10 ? `${Math.round(dominant.percentage)}%` : '';
     }
     
+    // Framework-specific label for constitution card
+    const framework = latestAssessment?.framework || 'ayurveda';
+    let constitutionLabel = 'Dominant Dosha';
+    if (framework === 'unani') {
+      constitutionLabel = 'Dominant Humor';
+    } else if (framework === 'tcm') {
+      constitutionLabel = 'Primary Pattern';
+    }
+    
     const summaryCards = {
       dosha: {
         value: dominant.name,
-        label: 'Dominant Dosha',
+        label: constitutionLabel,
         trend: doshaTrend,
-        bgColor: 'bg-gradient-to-br from-orange-400 to-orange-500'
+        bgColor: 'bg-gradient-to-br from-orange-400 to-orange-500',
+        framework: framework
       },
       conditions: {
         value: conditionsCount,
@@ -843,6 +853,130 @@ router.get('/', protect, authorize('user'), async (req, res) => {
       success: false,
       message: 'Error fetching dashboard data',
       error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/dashboard/dosha-balance
+ * @desc    Get real-time constitution balance (dosha/humor/pattern) based on assessment
+ * @access  Private
+ */
+router.get('/dosha-balance', protect, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Get user and latest assessment (any framework)
+    const user = await User.findById(userId);
+    const assessment = await Assessment.findOne({ 
+      userId,
+      isActive: true 
+    }).sort({ completedAt: -1 });
+
+    if (!assessment || !assessment.scores) {
+      return res.status(404).json({
+        success: false,
+        error: 'No active assessment found'
+      });
+    }
+
+    const framework = assessment.framework;
+
+    // Handle Ayurveda framework
+    if (framework === 'ayurveda') {
+      // Get base constitution from assessment
+      const prakriti = assessment.scores.prakriti;
+      const vikriti = assessment.scores.vikriti;
+
+      // Start with base prakriti percentages
+      let vataBalance = prakriti?.percentages?.vata || 33;
+      let pittaBalance = prakriti?.percentages?.pitta || 33;
+      let kaphaBalance = prakriti?.percentages?.kapha || 33;
+
+      // Apply current state (vikriti) influence
+      if (vikriti && vikriti.scores) {
+        vataBalance = (vataBalance * 0.4) + (vikriti.scores.vata * 0.6);
+        pittaBalance = (pittaBalance * 0.4) + (vikriti.scores.pitta * 0.6);
+        kaphaBalance = (kaphaBalance * 0.4) + (vikriti.scores.kapha * 0.6);
+      }
+
+      // Normalize to ensure total is reasonable
+      const total = vataBalance + pittaBalance + kaphaBalance;
+      if (total > 0) {
+        vataBalance = (vataBalance / total) * 100;
+        pittaBalance = (pittaBalance / total) * 100;
+        kaphaBalance = (kaphaBalance / total) * 100;
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          framework: 'ayurveda',
+          vata: Math.round(vataBalance * 10) / 10,
+          pitta: Math.round(pittaBalance * 10) / 10,
+          kapha: Math.round(kaphaBalance * 10) / 10,
+          dominant: vataBalance > pittaBalance && vataBalance > kaphaBalance ? 'Vata'
+                    : pittaBalance > kaphaBalance ? 'Pitta' : 'Kapha',
+          source: 'real-time',
+          lastUpdated: new Date()
+        }
+      });
+    }
+    
+    // Handle Unani framework
+    else if (framework === 'unani') {
+      const scores = assessment.scores;
+      
+      return res.json({
+        success: true,
+        data: {
+          framework: 'unani',
+          primary_mizaj: scores.primary_mizaj || 'Unknown',
+          secondary_mizaj: scores.secondary_mizaj || null,
+          dominant_humor: scores.dominant_humor || scores.primary_mizaj || 'Unknown',
+          thermal_tendency: scores.thermal_tendency || 'Balanced',
+          moisture_tendency: scores.moisture_tendency || 'Balanced',
+          digestive_strength: scores.digestive_strength || 'Moderate',
+          dominant: (scores.dominant_humor || scores.primary_mizaj || 'Unknown').charAt(0).toUpperCase() + 
+                    (scores.dominant_humor || scores.primary_mizaj || '').slice(1),
+          source: 'assessment',
+          lastUpdated: new Date()
+        }
+      });
+    }
+    
+    // Handle TCM framework
+    else if (framework === 'tcm') {
+      const scores = assessment.scores;
+      
+      return res.json({
+        success: true,
+        data: {
+          framework: 'tcm',
+          primary_pattern: scores.primary_pattern || 'Unknown',
+          secondary_pattern: scores.secondary_pattern || null,
+          cold_heat: scores.cold_heat || 'Balanced',
+          severity: scores.severity || 'Mild',
+          dominant: scores.primary_pattern || 'Unknown',
+          source: 'assessment',
+          lastUpdated: new Date()
+        }
+      });
+    }
+    
+    // Unknown framework
+    else {
+      return res.status(400).json({
+        success: false,
+        error: `Unsupported framework: ${framework}`
+      });
+    }
+
+  } catch (error) {
+    console.error('Error calculating constitution balance:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to calculate constitution balance'
     });
   }
 });

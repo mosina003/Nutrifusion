@@ -28,17 +28,30 @@ class UnaniMealPlanGenerator {
       ...rankedFoods.moderately_suitable
     ];
 
+    console.log('🔍 Suitable foods count:', suitableFoods.length);
+    if (suitableFoods.length > 0) {
+      console.log('🔍 Sample food structure:', JSON.stringify(suitableFoods[0], null, 2));
+    }
+
     // Group foods by category for easier meal composition
     const foodsByCategory = this._groupByCategory(suitableFoods);
+
+    console.log('🔍 Foods by category:', Object.keys(foodsByCategory).map(k => `${k}: ${foodsByCategory[k].length}`).join(', '));
 
     const weekPlan = {};
     
     for (let day = 1; day <= 7; day++) {
-      weekPlan[`day_${day}`] = this._generateDayMeals(
+      const dayMeals = this._generateDayMeals(
         foodsByCategory,
         userAssessment,
         day
       );
+      console.log(`🔍 Day ${day} meals:`, {
+        breakfast: dayMeals.breakfast?.length || 0,
+        lunch: dayMeals.lunch?.length || 0,
+        dinner: dayMeals.dinner?.length || 0
+      });
+      weekPlan[`day_${day}`] = dayMeals;
     }
 
     return {
@@ -74,9 +87,9 @@ class UnaniMealPlanGenerator {
     
     // Select light grain or fruit
     const lightOptions = [
-      ...(foodsByCategory.Grain || []).filter(f => this._isLightDigestible(f)),
-      ...(foodsByCategory.Fruit || []).filter(f => this._isLightDigestible(f)),
-      ...(foodsByCategory.Dairy || []).filter(f => this._isLightDigestible(f))
+      ...(foodsByCategory.grain || []).filter(f => this._isLightDigestible(f)),
+      ...(foodsByCategory.fruit || []).filter(f => this._isLightDigestible(f)),
+      ...(foodsByCategory.dairy || []).filter(f => this._isLightDigestible(f))
     ];
 
     // For Balgham (Cold+Moist), avoid very cold/moist breakfast
@@ -97,7 +110,7 @@ class UnaniMealPlanGenerator {
     }
 
     // Add optional beverage
-    const beverages = (foodsByCategory.Beverage || []).filter(f => this._isLightDigestible(f));
+    const beverages = (foodsByCategory.beverage || []).filter(f => this._isLightDigestible(f));
     if (beverages.length > 0) {
       const beverage = beverages.find(b => !this._isUsedRecently(b, 'breakfast')) || beverages[0];
       breakfast.push(beverage.food_name);
@@ -115,7 +128,7 @@ class UnaniMealPlanGenerator {
     const lunch = [];
 
     // 1. Select Grain (max 2 times/week per grain)
-    const grains = (foodsByCategory.Grain || []).filter(f => 
+    const grains = (foodsByCategory.grain || []).filter(f => 
       !this._isOverused(f.food_name, 'grains', 2)
     );
     if (grains.length > 0) {
@@ -126,8 +139,8 @@ class UnaniMealPlanGenerator {
 
     // 2. Select Protein/Legume (max 2 times/week)
     const proteins = [
-      ...(foodsByCategory.Legume || []),
-      ...(foodsByCategory.Meat || [])
+      ...(foodsByCategory.legume || []),
+      ...(foodsByCategory.meat || [])
     ].filter(f => !this._isOverused(f.food_name, 'legumes', 2));
     
     if (proteins.length > 0) {
@@ -137,7 +150,7 @@ class UnaniMealPlanGenerator {
     }
 
     // 3. Select Vegetables (rotate)
-    const vegetables = (foodsByCategory.Vegetable || []).filter(f => 
+    const vegetables = (foodsByCategory.vegetable || []).filter(f => 
       !this._isUsedRecently(f, 'lunch')
     );
     
@@ -155,7 +168,7 @@ class UnaniMealPlanGenerator {
     }
 
     // 4. Add balancing spice/condiment
-    const spices = (foodsByCategory.Spice || []).slice(0, 2);
+    const spices = (foodsByCategory.spice || []).slice(0, 2);
     spices.forEach(s => lunch.push(s.food_name));
 
     return lunch;
@@ -171,8 +184,8 @@ class UnaniMealPlanGenerator {
 
     // Select light options based on Mizaj
     let lightOptions = [
-      ...(foodsByCategory.Vegetable || []),
-      ...(foodsByCategory.Grain || [])
+      ...(foodsByCategory.vegetable || []),
+      ...(foodsByCategory.grain || [])
     ].filter(f => this._isLightDigestible(f));
 
     // Filter based on Mizaj

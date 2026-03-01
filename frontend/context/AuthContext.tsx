@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getToken, getUser, removeToken, getCurrentUser, logout as apiLogout } from '@/lib/api'
+import { getToken, removeToken, getCurrentUser, logout as apiLogout, setUser as saveUser } from '@/lib/api'
 
 interface User {
   _id: string
@@ -41,20 +41,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Try to get user from localStorage first
-      const storedUser = getUser()
-      if (storedUser) {
-        setUser(storedUser)
-        setLoading(false)
-        return
-      }
-
-      // If no stored user, fetch from API
+      // Always fetch fresh user data from API
       try {
         const response = await getCurrentUser()
         if (response.success && response.data) {
           const userData = response.data.data || response.data
+          console.log('✅ AuthContext: Fetched user data from API:', userData)
           setUser(userData)
+          // Update localStorage with fresh data
+          saveUser(userData)
         } else {
           // Invalid token, clear it
           removeToken()
@@ -83,9 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userData = response.data.data || response.data
         setUser(userData)
         // Update localStorage as well
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('nutrifusion_user', JSON.stringify(userData))
-        }
+        saveUser(userData)
       }
     } catch (error) {
       console.error('Error refreshing user:', error)
@@ -95,9 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setAuthUser = (user: User) => {
     setUser(user)
     // Also update localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('nutrifusion_user', JSON.stringify(user))
-    }
+    saveUser(user)
   }
 
   const value = {

@@ -7,6 +7,7 @@ const User = require('../models/User');
 const AssessmentEngine = require('../services/assessment');
 const questionBanks = require('../services/assessment/questionBanks');
 const ayurvedaDietPlanService = require('../services/intelligence/diet/ayurvedaDietPlanService');
+const unaniDietPlanService = require('../services/intelligence/diet/unaniDietPlanService');
 
 /**
  * @route   GET /api/assessments/frameworks
@@ -128,7 +129,7 @@ router.post('/submit', protect, async (req, res) => {
             result.scores,
             {} // No special preferences
           );
-          console.log('✅ Diet plan generated successfully');
+          console.log('✅ Ayurveda diet plan generated successfully');
 
           // Convert to DietPlan schema
           const meals = convertSevenDayPlanToMeals(dietPlanData['7_day_plan']);
@@ -159,11 +160,71 @@ router.post('/submit', protect, async (req, res) => {
           });
 
           await dietPlan.save();
-        dietPlanId: dietPlanId,
           dietPlanId = dietPlan._id;
-          console.log('✅ Diet plan saved to DietPlan collection:', dietPlanId);
+          console.log('✅ Ayurveda diet plan saved to DietPlan collection:', dietPlanId);
         } catch (dietPlanError) {
-          console.error('⚠️  Diet plan generation/save failed:', dietPlanError.message);
+          console.error('⚠️  Ayurveda diet plan generation/save failed:', dietPlanError.message);
+          // Continue without diet plan - non-critical error
+        }
+      } else if (framework === 'unani' && result.scores) {
+        try {
+          console.log('🔄 Generating Unani diet plan with scores:', JSON.stringify(result.scores, null, 2));
+          const dietPlanData = await unaniDietPlanService.generateDietPlan(
+            result.scores,
+            {} // No special preferences
+          );
+          console.log('✅ Unani diet plan generated successfully');
+          console.log('📊 Diet plan structure keys:', Object.keys(dietPlanData));
+          console.log('📊 Has data?', !!dietPlanData.data);
+          console.log('📊 Has meal_plan?', !!dietPlanData.data?.meal_plan);
+          console.log('📊 Has 7_day_plan?', !!dietPlanData.data?.meal_plan?.['7_day_plan']);
+
+          // Convert to DietPlan schema
+          const sevenDayPlan = dietPlanData.data?.meal_plan?.['7_day_plan'];
+          console.log('📅 7-day plan type:', typeof sevenDayPlan);
+          console.log('📅 7-day plan keys:', Object.keys(sevenDayPlan || {}));
+          console.log('📅 Day 1 data:', JSON.stringify(sevenDayPlan?.day_1, null, 2));
+          
+          const meals = convertSevenDayPlanToMeals(sevenDayPlan);
+          console.log('🍽️ Converted meals count:', meals.length);
+          if (meals.length > 0) {
+            console.log('🍽️ Sample meal:', JSON.stringify(meals[0], null, 2));
+          } else {
+            console.log('⚠️  NO MEALS CONVERTED - Conversion failed!');
+          }
+          
+          const dietPlan = new DietPlan({
+            userId,
+            planName: `Unani Auto-Generated Plan`,
+            planType: 'unani',
+            meals: meals,
+            rulesApplied: [{
+              framework: 'unani',
+              details: {
+                reasoning: dietPlanData.data.meal_plan.reasoning_summary || 'Auto-generated from assessment',
+                topFoods: dietPlanData.data.meal_plan.top_ranked_foods || [],
+                primary_mizaj: result.scores.primary_mizaj,
+                dominant_humor: result.scores.dominant_humor,
+                sourceAssessmentId: assessment._id
+              }
+            }],
+            status: 'Active',
+            createdBy: userId,
+            createdByModel: 'System',
+            validFrom: new Date(),
+            validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            metadata: {
+              sourceAssessmentId: assessment._id,
+              generatedAt: new Date()
+            }
+          });
+
+          await dietPlan.save();
+          dietPlanId = dietPlan._id;
+          console.log('✅ Unani diet plan saved to DietPlan collection:', dietPlanId);
+        } catch (dietPlanError) {
+          console.error('⚠️  Unani diet plan generation/save failed:', dietPlanError.message);
+          console.error('Error details:', dietPlanError);
           // Continue without diet plan - non-critical error
         }
       }
@@ -253,24 +314,35 @@ router.get('/user/:userId?', protect, async (req, res) => {
 
 /**
  * @route   GET /api/assessments/diet-plan/current
- * @desc    Get current user's diet plan from DietPlan collection
+ * @desc    Get current user's diet plan from DietPlan collection (supports all frameworks)
  * @access  Private
  */
 router.get('/diet-plan/current', protect, async (req, res) => {
   try {
     const userId = req.userId;
 
-    // Find active Ayurveda assessment for health profile
+    // Get user to determine preferred framework
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    const framework = user.preferredMedicalFramework || 'ayurveda';
+
+    // Find active assessment for user's preferred framework
     const assessment = await Assessment.findOne({ 
       userId, 
-      framework: 'ayurveda',
+      framework: framework,
       isActive: true 
     }).sort({ completedAt: -1 });
 
     if (!assessment) {
       return res.status(404).json({
         success: false,
-        error: 'No active Ayurveda assessment found. Please complete an assessment first.'
+        error: `No active ${framework} assessment found. Please complete an assessment first.`
       });
     }
 
@@ -278,7 +350,7 @@ router.get('/diet-plan/current', protect, async (req, res) => {
     const dietPlan = await DietPlan.findOne({
       userId,
       status: 'Active',
-      planType: 'ayurveda',
+      planType: framework,
       validFrom: { $lte: new Date() },
       validTo: { $gte: new Date() }
     }).sort({ createdAt: -1 });
@@ -292,6 +364,10 @@ router.get('/diet-plan/current', protect, async (req, res) => {
 
     // Convert DietPlan format back to 7_day_plan format for dashboard compatibility
     const sevenDayPlan = convertMealsToSevenDayPlan(dietPlan.meals);
+    console.log('✅ Converted diet plan meals to 7-day format');
+    console.log('📅 Available days:', Object.keys(sevenDayPlan));
+    console.log('📊 Day 1 sample:', JSON.stringify(sevenDayPlan['day_1']));
+    console.log('🍽️ Total meals in database:', dietPlan.meals?.length || 0);
     
     const response = {
       '7_day_plan': sevenDayPlan,
@@ -300,20 +376,41 @@ router.get('/diet-plan/current', protect, async (req, res) => {
       avoidFoods: dietPlan.rulesApplied[0]?.details?.avoidFoods || []
     };
 
-    res.json({
-      success: true,
-      dietPlan: response,
-      healthProfile: {
+    // Build health profile based on framework
+    let healthProfile = {};
+    if (framework === 'ayurveda') {
+      healthProfile = {
         prakriti: assessment.scores.prakriti,
         vikriti: assessment.scores.vikriti,
         agni: assessment.scores.agni
-      },
+      };
+    } else if (framework === 'unani') {
+      healthProfile = {
+        primary_mizaj: assessment.scores.primary_mizaj,
+        dominant_humor: assessment.scores.dominant_humor,
+        digestive_strength: assessment.scores.digestive_strength
+      };
+    } else if (framework === 'tcm') {
+      healthProfile = {
+        primary_pattern: assessment.scores.primary_pattern,
+        secondary_pattern: assessment.scores.secondary_pattern,
+        cold_heat: assessment.scores.cold_heat
+      };
+    }
+
+    res.json({
+      success: true,
+      framework: framework,
+      dietPlan: response,
+      healthProfile: healthProfile,
       metadata: {
         dietPlanId: dietPlan._id,
         validFrom: dietPlan.validFrom,
         validTo: dietPlan.validTo
       }
     });
+    
+    console.log(`✅ Sent diet plan response for ${framework} framework with ${Object.keys(sevenDayPlan).length} days`);
     
   } catch (error) {
     console.error('Error fetching diet plan:', error);

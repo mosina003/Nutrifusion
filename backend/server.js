@@ -34,6 +34,7 @@ const dietPlanRoutes = require('./routes/dietPlans');
 const recommendationRoutes = require('./routes/recommendations');
 const assessmentRoutes = require('./routes/assessments');
 const dashboardRoutes = require('./routes/dashboard');
+const mealCompletionRoutes = require('./routes/mealCompletions');
 
 // Basic route
 app.get('/', (req, res) => {
@@ -76,6 +77,7 @@ app.use('/api/diet-plans', dietPlanRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/assessments', assessmentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/meal-completions', mealCompletionRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
