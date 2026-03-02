@@ -3,6 +3,35 @@
  * Creates balanced weekly meal plans based on Unani principles
  */
 
+/**
+ * Simple seeded pseudo-random number generator (LCG algorithm)
+ */
+class SeededRandom {
+  constructor(seed) {
+    this.seed = seed % 2147483647;
+    if (this.seed <= 0) this.seed += 2147483646;
+  }
+
+  next() {
+    this.seed = (this.seed * 16807) % 2147483647;
+    return (this.seed - 1) / 2147483646;
+  }
+}
+
+/**
+ * Fisher-Yates shuffle algorithm with seeded randomization
+ */
+const shuffleArray = (array, seed = 0) => {
+  const arr = [...array];
+  const rng = new SeededRandom(seed);
+  
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng.next() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
 class UnaniMealPlanGenerator {
   constructor() {
     this.usedCombinations = new Set();
@@ -22,6 +51,10 @@ class UnaniMealPlanGenerator {
    */
   generateWeeklyPlan(rankedFoods, userAssessment) {
     this._resetTracking();
+
+    // Generate a random offset based on timestamp for true variety on regeneration
+    const randomOffset = Date.now() % 1000000 + Math.floor(Math.random() * 100000);
+    console.log('🔀 Unani random offset for plan variety:', randomOffset);
 
     const suitableFoods = [
       ...rankedFoods.highly_suitable,
@@ -44,7 +77,8 @@ class UnaniMealPlanGenerator {
       const dayMeals = this._generateDayMeals(
         foodsByCategory,
         userAssessment,
-        day
+        day,
+        randomOffset  // Pass random offset to day meals
       );
       console.log(`🔍 Day ${day} meals:`, {
         breakfast: dayMeals.breakfast?.length || 0,
@@ -68,13 +102,13 @@ class UnaniMealPlanGenerator {
    * Generate meals for a single day
    * @private
    */
-  _generateDayMeals(foodsByCategory, userAssessment, dayNumber) {
+  _generateDayMeals(foodsByCategory, userAssessment, dayNumber, randomOffset = 0) {
     const { primary_mizaj, digestive_strength } = userAssessment;
 
     return {
-      breakfast: this._selectBreakfast(foodsByCategory, primary_mizaj, digestive_strength),
-      lunch: this._selectLunch(foodsByCategory, primary_mizaj, dayNumber),
-      dinner: this._selectDinner(foodsByCategory, primary_mizaj, digestive_strength)
+      breakfast: this._selectBreakfast(foodsByCategory, primary_mizaj, digestive_strength, randomOffset),
+      lunch: this._selectLunch(foodsByCategory, primary_mizaj, dayNumber, randomOffset),
+      dinner: this._selectDinner(foodsByCategory, primary_mizaj, digestive_strength, randomOffset)
     };
   }
 
@@ -124,38 +158,41 @@ class UnaniMealPlanGenerator {
    * LUNCH - Main meal: 1 grain + 1 protein/legume + 1 vegetable
    * @private
    */
-  _selectLunch(foodsByCategory, mizaj, dayNumber) {
+  _selectLunch(foodsByCategory, mizaj, dayNumber, randomOffset = 0) {
     const lunch = [];
 
-    // 1. Select Grain (max 2 times/week per grain)
+    // 1. Select Grain (max 2 times/week per grain) with shuffling
     const grains = (foodsByCategory.grain || []).filter(f => 
       !this._isOverused(f.food_name, 'grains', 2)
     );
     if (grains.length > 0) {
-      const grain = grains[dayNumber % grains.length];
+      const shuffledGrains = shuffleArray(grains, randomOffset + dayNumber);
+      const grain = shuffledGrains[0];
       lunch.push(grain.food_name);
       this._incrementUsage(grain.food_name, 'grains');
     }
 
-    // 2. Select Protein/Legume (max 2 times/week)
+    // 2. Select Protein/Legume (max 2 times/week) with shuffling
     const proteins = [
       ...(foodsByCategory.legume || []),
       ...(foodsByCategory.meat || [])
     ].filter(f => !this._isOverused(f.food_name, 'legumes', 2));
     
     if (proteins.length > 0) {
-      const protein = proteins[dayNumber % proteins.length];
+      const shuffledProteins = shuffleArray(proteins, randomOffset + dayNumber * 2);
+      const protein = shuffledProteins[0];
       lunch.push(protein.food_name);
       this._incrementUsage(protein.food_name, 'legumes');
     }
 
-    // 3. Select Vegetables (rotate)
+    // 3. Select Vegetables (rotate) with shuffling
     const vegetables = (foodsByCategory.vegetable || []).filter(f => 
       !this._isUsedRecently(f, 'lunch')
     );
     
     if (vegetables.length > 0) {
-      const veg = vegetables[0];
+      const shuffledVegetables = shuffleArray(vegetables, randomOffset + dayNumber * 3);
+      const veg = shuffledVegetables[0];
       lunch.push(veg.food_name);
       this._markAsUsed(veg, 'lunch');
       
@@ -179,7 +216,7 @@ class UnaniMealPlanGenerator {
    * Avoid heavy moist (Balgham), avoid very dry (Sauda)
    * @private
    */
-  _selectDinner(foodsByCategory, mizaj, digestive_strength) {
+  _selectDinner(foodsByCategory, mizaj, digestive_strength, randomOffset = 0) {
     const dinner = [];
 
     // Select light options based on Mizaj
@@ -204,20 +241,21 @@ class UnaniMealPlanGenerator {
       });
     }
 
-    // Select 1-2 light items
-    const dinnerItems = lightOptions
-      .filter(f => !this._isUsedRecently(f, 'dinner'))
-      .slice(0, 2);
+    // Select 1-2 light items (with shuffling)
+    const availableDinnerItems = lightOptions.filter(f => !this._isUsedRecently(f, 'dinner'));
+    const shuffledDinner = shuffleArray(availableDinnerItems, randomOffset + 100);
+    const dinnerItems = shuffledDinner.slice(0, 2);
     
     dinnerItems.forEach(item => {
       dinner.push(item.food_name);
       this._markAsUsed(item, 'dinner');
     });
 
-    // Add soup or light beverage
+    // Add soup or light beverage (with shuffling)
     const beverages = (foodsByCategory.Beverage || []).filter(f => this._isLightDigestible(f));
     if (beverages.length > 0 && dinner.length < 3) {
-      const bev = beverages[0];
+      const shuffledBeverages = shuffleArray(beverages, randomOffset + 200);
+      const bev = shuffledBeverages[0];
       dinner.push(bev.food_name);
     }
 

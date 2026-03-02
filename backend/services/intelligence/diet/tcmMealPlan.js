@@ -3,6 +3,35 @@
  * Creates balanced weekly meal plans based on TCM pattern diagnosis
  */
 
+/**
+ * Simple seeded pseudo-random number generator (LCG algorithm)
+ */
+class SeededRandom {
+  constructor(seed) {
+    this.seed = seed % 2147483647;
+    if (this.seed <= 0) this.seed += 2147483646;
+  }
+
+  next() {
+    this.seed = (this.seed * 16807) % 2147483647;
+    return (this.seed - 1) / 2147483646;
+  }
+}
+
+/**
+ * Fisher-Yates shuffle algorithm with seeded randomization
+ */
+const shuffleArray = (array, seed = 0) => {
+  const arr = [...array];
+  const rng = new SeededRandom(seed);
+  
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng.next() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
 class TCMMealPlanGenerator {
   constructor() {
     this.usedCombinations = new Set();
@@ -12,6 +41,7 @@ class TCMMealPlanGenerator {
       vegetables: {},
       fruits: {}
     };
+    this.randomOffset = 0;
   }
 
   /**
@@ -22,6 +52,10 @@ class TCMMealPlanGenerator {
    */
   generateWeeklyPlan(rankedFoods, userAssessment) {
     this._resetTracking();
+
+    // Generate a random offset based on timestamp for true variety on regeneration
+    this.randomOffset = Date.now() % 1000000 + Math.floor(Math.random() * 100000);
+    console.log('🔀 TCM random offset for plan variety:', this.randomOffset);
 
     const suitableFoods = rankedFoods.top_ranked_foods;
 
@@ -76,7 +110,8 @@ class TCMMealPlanGenerator {
     );
 
     if (warmGrains.length > 0) {
-      const grain = warmGrains[0];
+      const shuffledGrains = shuffleArray(warmGrains, this.randomOffset);
+      const grain = shuffledGrains[0];
       breakfast.push(grain.food_name);
       this._markAsUsed(grain, 'breakfast');
     }
@@ -87,14 +122,18 @@ class TCMMealPlanGenerator {
         ...(foodsByCategory.Grain || []),
         ...(foodsByCategory.Legume || []),
         ...(foodsByCategory.Protein || [])
-      ].find(f => 
+      ].filter(f => 
         f.rawFood.tcm?.tonifies_qi === true && 
         !this._isUsedRecently(f, 'breakfast')
       );
       
-      if (qiTonifying && !breakfast.includes(qiTonifying.food_name)) {
-        breakfast.push(qiTonifying.food_name);
-        this._markAsUsed(qiTonifying, 'breakfast');
+      if (qiTonifying.length > 0) {
+        const shuffledQi = shuffleArray(qiTonifying, this.randomOffset + 100);
+        const qiFood = shuffledQi[0];
+        if (!breakfast.includes(qiFood.food_name)) {
+          breakfast.push(qiFood.food_name);
+          this._markAsUsed(qiFood, 'breakfast');
+        }
       }
     }
 
@@ -103,7 +142,8 @@ class TCMMealPlanGenerator {
       f.rawFood.tcm?.thermalNature !== 'Cold'
     );
     if (beverages.length > 0) {
-      const beverage = beverages[0];
+      const shuffledBeverages = shuffleArray(beverages, this.randomOffset + 200);
+      const beverage = shuffledBeverages[0];
       breakfast.push(beverage.food_name);
     }
 
@@ -122,7 +162,8 @@ class TCMMealPlanGenerator {
       !this._isOverused(f.food_name, 'grains', 2)
     );
     if (grains.length > 0) {
-      const grain = grains[dayNumber % grains.length];
+      const shuffledGrains = shuffleArray(grains, this.randomOffset + dayNumber);
+      const grain = shuffledGrains[0];
       lunch.push(grain.food_name);
       this._incrementUsage(grain.food_name, 'grains');
     }
@@ -136,17 +177,21 @@ class TCMMealPlanGenerator {
     if (proteins.length > 0) {
       // For Dampness, prefer resolves_dampness proteins
       if (pattern === 'Dampness') {
-        const dampnessResolver = proteins.find(p => p.rawFood.tcm?.resolves_dampness === true);
-        if (dampnessResolver) {
+        const dampnessResolvers = proteins.filter(p => p.rawFood.tcm?.resolves_dampness === true);
+        if (dampnessResolvers.length > 0) {
+          const shuffledResolvers = shuffleArray(dampnessResolvers, this.randomOffset + dayNumber * 2);
+          const dampnessResolver = shuffledResolvers[0];
           lunch.push(dampnessResolver.food_name);
           this._incrementUsage(dampnessResolver.food_name, 'proteins');
         } else {
-          const protein = proteins[0];
+          const shuffledProteins = shuffleArray(proteins, this.randomOffset + dayNumber * 2);
+          const protein = shuffledProteins[0];
           lunch.push(protein.food_name);
           this._incrementUsage(protein.food_name, 'proteins');
         }
       } else {
-        const protein = proteins[dayNumber % proteins.length];
+        const shuffledProteins = shuffleArray(proteins, this.randomOffset + dayNumber * 2);
+        const protein = shuffledProteins[0];
         lunch.push(protein.food_name);
         this._incrementUsage(protein.food_name, 'proteins');
       }
@@ -160,24 +205,29 @@ class TCMMealPlanGenerator {
     if (vegetables.length > 0) {
       // For Heat pattern, prefer cooling vegetables
       if (pattern === 'Heat Pattern' || cold_heat === 'Heat') {
-        const coolingVeg = vegetables.find(v => 
+        const coolingVegs = vegetables.filter(v => 
           v.rawFood.tcm?.thermalNature === 'Cool' || v.rawFood.tcm?.thermalNature === 'Cold'
         );
-        if (coolingVeg) {
+        if (coolingVegs.length > 0) {
+          const shuffledCooling = shuffleArray(coolingVegs, this.randomOffset + dayNumber * 3);
+          const coolingVeg = shuffledCooling[0];
           lunch.push(coolingVeg.food_name);
           this._incrementUsage(coolingVeg.food_name, 'vegetables');
         }
       } else {
-        const veg = vegetables[dayNumber % vegetables.length];
+        const shuffledVegs = shuffleArray(vegetables, this.randomOffset + dayNumber * 3);
+        const veg = shuffledVegs[0];
         lunch.push(veg.food_name);
         this._incrementUsage(veg.food_name, 'vegetables');
       }
 
       // Add second vegetable for variety
-      const secondVeg = vegetables.find(v => 
+      const remainingVegs = vegetables.filter(v => 
         !lunch.includes(v.food_name) && !this._isOverused(v.food_name, 'vegetables', 3)
       );
-      if (secondVeg) {
+      if (remainingVegs.length > 0) {
+        const shuffledRemaining = shuffleArray(remainingVegs, this.randomOffset + dayNumber * 4);
+        const secondVeg = shuffledRemaining[0];
         lunch.push(secondVeg.food_name);
         this._incrementUsage(secondVeg.food_name, 'vegetables');
       }
@@ -185,12 +235,14 @@ class TCMMealPlanGenerator {
 
     // 4. Optional: Add Qi-moving food for Liver Qi Stagnation
     if (pattern === 'Liver Qi Stagnation') {
-      const qiMover = [
+      const qiMovers = [
         ...(foodsByCategory.Vegetable || []),
         ...(foodsByCategory.Spice || [])
-      ].find(f => f.rawFood.tcm?.moves_qi === true && !lunch.includes(f.food_name));
+      ].filter(f => f.rawFood.tcm?.moves_qi === true && !lunch.includes(f.food_name));
       
-      if (qiMover) {
+      if (qiMovers.length > 0) {
+        const shuffledQiMovers = shuffleArray(qiMovers, this.randomOffset + dayNumber * 5);
+        const qiMover = shuffledQiMovers[0];
         lunch.push(qiMover.food_name);
       }
     }
@@ -221,7 +273,8 @@ class TCMMealPlanGenerator {
     );
 
     if (suitableLight.length > 0) {
-      const lightFood = suitableLight[0];
+      const shuffledLight = shuffleArray(suitableLight, this.randomOffset + 300);
+      const lightFood = shuffledLight[0];
       dinner.push(lightFood.food_name);
       this._markAsUsed(lightFood, 'dinner');
     }
@@ -238,7 +291,8 @@ class TCMMealPlanGenerator {
       );
 
       if (lightProteins.length > 0) {
-        const protein = lightProteins[0];
+        const shuffledProteins = shuffleArray(lightProteins, this.randomOffset + 400);
+        const protein = shuffledProteins[0];
         dinner.push(protein.food_name);
         this._markAsUsed(protein, 'dinner');
       }
@@ -252,18 +306,20 @@ class TCMMealPlanGenerator {
     );
 
     if (dinnerVegetables.length > 0) {
-      const veg = dinnerVegetables[0];
+      const shuffledVegs = shuffleArray(dinnerVegetables, this.randomOffset + 500);
+      const veg = shuffledVegs[0];
       dinner.push(veg.food_name);
       this._markAsUsed(veg, 'dinner');
     }
 
-    // 4. Digestion-supporting spice
+    // 4. Digestion-supporting spice  
     const digestiveSpices = (foodsByCategory.Spice || []).filter(f => 
       f.rawFood.tcm?.thermalNature === 'Warm' && !dinner.includes(f.food_name)
     );
 
     if (digestiveSpices.length > 0) {
-      dinner.push(digestiveSpices[0].food_name);
+      const shuffledSpices = shuffleArray(digestiveSpices, this.randomOffset + 600);
+      dinner.push(shuffledSpices[0].food_name);
     }
 
     return dinner;

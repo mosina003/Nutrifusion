@@ -10,6 +10,35 @@
  */
 
 /**
+ * Simple seeded pseudo-random number generator (LCG algorithm)
+ */
+class SeededRandom {
+  constructor(seed) {
+    this.seed = seed % 2147483647;
+    if (this.seed <= 0) this.seed += 2147483646;
+  }
+
+  next() {
+    this.seed = (this.seed * 16807) % 2147483647;
+    return (this.seed - 1) / 2147483646;
+  }
+}
+
+/**
+ * Fisher-Yates shuffle algorithm with seeded randomization
+ */
+const shuffleArray = (array, seed = 0) => {
+  const arr = [...array];
+  const rng = new SeededRandom(seed);
+  
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng.next() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
+/**
  * Incompatible food combinations for Modern nutrition
  * Based on digestion and nutrient absorption principles
  */
@@ -113,7 +142,7 @@ const calculateMacroTargets = (clinicalProfile, dailyCalories) => {
  * Target: 20-25% of daily calories
  * Focus: Protein, complex carbs, moderate fat
  */
-const generateBreakfast = (categorizedFoods, calorieTarget, usedIngredients, dayNumber) => {
+const generateBreakfast = (categorizedFoods, calorieTarget, usedIngredients, dayNumber, randomOffset = 0) => {
   const { highly_recommended, moderate } = categorizedFoods;
   const allFoods = [...highly_recommended, ...moderate];
   
@@ -127,13 +156,15 @@ const generateBreakfast = (categorizedFoods, calorieTarget, usedIngredients, day
   let currentCalories = 0;
   
   // 1. Protein source (Egg, Dairy, Legume, or Nut)
-  const protein = allFoods.find(f => 
+  const proteins = allFoods.filter(f => 
     ['Egg', 'Dairy', 'Legume', 'Nut'].includes(f.food.category) &&
     !usedIngredients.proteins.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
   
-  if (protein) {
+  if (proteins.length > 0) {
+    const shuffledProteins = shuffleArray(proteins, randomOffset + dayNumber);
+    const protein = shuffledProteins[0];
     meal.foods.push({
       food: protein.food,
       portion: '1 serving',
@@ -145,13 +176,15 @@ const generateBreakfast = (categorizedFoods, calorieTarget, usedIngredients, day
   }
   
   // 2. Whole grain (Grain, Bread)
-  const grain = allFoods.find(f => 
+  const grains = allFoods.filter(f => 
     ['Grain', 'Bread'].includes(f.food.category) &&
     !usedIngredients.grains.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
   
-  if (grain) {
+  if (grains.length > 0) {
+    const shuffledGrains = shuffleArray(grains, randomOffset + dayNumber * 2);
+    const grain = shuffledGrains[0];
     meal.foods.push({
       food: grain.food,
       portion: '1 serving',
@@ -163,13 +196,15 @@ const generateBreakfast = (categorizedFoods, calorieTarget, usedIngredients, day
   }
   
   // 3. Fruit (for micronutrients and fiber)
-  const fruit = allFoods.find(f => 
+  const fruits = allFoods.filter(f => 
     f.food.category === 'Fruit' &&
     !usedIngredients.fruits.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
   
-  if (fruit) {
+  if (fruits.length > 0) {
+    const shuffledFruits = shuffleArray(fruits, randomOffset + dayNumber * 3);
+    const fruit = shuffledFruits[0];
     meal.foods.push({
       food: fruit.food,
       portion: '1 serving',
@@ -189,7 +224,7 @@ const generateBreakfast = (categorizedFoods, calorieTarget, usedIngredients, day
  * Target: 30-35% of daily calories
  * Focus: Balanced macros, main meal of the day
  */
-const generateLunch = (categorizedFoods, calorieTarget, usedIngredients, dayNumber) => {
+const generateLunch = (categorizedFoods, calorieTarget, usedIngredients, dayNumber, randomOffset = 0) => {
   const { highly_recommended, moderate } = categorizedFoods;
   const allFoods = [...highly_recommended, ...moderate];
   
@@ -203,13 +238,15 @@ const generateLunch = (categorizedFoods, calorieTarget, usedIngredients, dayNumb
   let currentCalories = 0;
   
   // 1. Main protein (Meat, Poultry, Fish, Legume, or Tofu)
-  const protein = allFoods.find(f => 
+  const proteins = allFoods.filter(f => 
     ['Meat', 'Poultry', 'Fish', 'Legume', 'Tofu'].includes(f.food.category) &&
     !usedIngredients.proteins.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
   
-  if (protein) {
+  if (proteins.length > 0) {
+    const shuffledProteins = shuffleArray(proteins, randomOffset + dayNumber * 4);
+    const protein = shuffledProteins[0];
     meal.foods.push({
       food: protein.food,
       portion: 'Large (150-200g)',
@@ -221,14 +258,15 @@ const generateLunch = (categorizedFoods, calorieTarget, usedIngredients, dayNumb
   }
   
   // 2. Complex carb (Grain, Legume, or Starchy Vegetable)
-  const carb = allFoods.find(f => 
+  const carbs = allFoods.filter(f => 
     ['Grain', 'Legume', 'Potato', 'Sweet Potato'].includes(f.food.category) &&
     !usedIngredients.grains.has(f.food.name) &&
-    !areIncompatible(f.food, protein?.food) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
   
-  if (carb) {
+  if (carbs.length > 0) {
+    const shuffledCarbs = shuffleArray(carbs, randomOffset + dayNumber * 5);
+    const carb = shuffledCarbs[0];
     meal.foods.push({
       food: carb.food,
       portion: 'Medium (100-150g)',
@@ -244,26 +282,32 @@ const generateLunch = (categorizedFoods, calorieTarget, usedIngredients, dayNumb
     f.food.category === 'Vegetable' &&
     !usedIngredients.vegetables.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) * 2 <= calorieTarget * 1.1
-  ).slice(0, 2);
+  );
   
-  vegetables.forEach(veg => {
-    meal.foods.push({
-      food: veg.food,
-      portion: 'Medium (100g)',
-      preparation: 'Steamed, roasted, or sautéed',
-      calories_estimated: veg.modern_data.calories
+  if (vegetables.length > 0) {
+    const shuffledVegs = shuffleArray(vegetables, randomOffset + dayNumber * 6);
+    const selectedVegs = shuffledVegs.slice(0, 2);
+    selectedVegs.forEach(veg => {
+      meal.foods.push({
+        food: veg.food,
+        portion: 'Medium (100g)',
+        preparation: 'Steamed, roasted, or sautéed',
+        calories_estimated: veg.modern_data.calories
+      });
+      currentCalories += veg.modern_data.calories || 0;
+      usedIngredients.vegetables.add(veg.food.name);
     });
-    currentCalories += veg.modern_data.calories || 0;
-    usedIngredients.vegetables.add(veg.food.name);
-  });
+  }
   
   // 4. Healthy fat (Oil, Avocado, Nuts)
-  const fat = allFoods.find(f => 
+  const fats = allFoods.filter(f => 
     ['Oil', 'Avocado', 'Nut'].includes(f.food.category) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
   
-  if (fat) {
+  if (fats.length > 0) {
+    const shuffledFats = shuffleArray(fats, randomOffset + dayNumber * 7);
+    const fat = shuffledFats[0];
     meal.foods.push({
       food: fat.food,
       portion: 'Small (1 tbsp or 15g)',
@@ -282,7 +326,7 @@ const generateLunch = (categorizedFoods, calorieTarget, usedIngredients, dayNumb
  * Target: 20-25% of daily calories
  * Focus: Lighter than lunch, easier to digest
  */
-const generateDinner = (categorizedFoods, calorieTarget, usedIngredients, dayNumber) => {
+const generateDinner = (categorizedFoods, calorieTarget, usedIngredients, dayNumber, randomOffset = 0) => {
   const { highly_recommended, moderate } = categorizedFoods;
   const allFoods = [...highly_recommended, ...moderate];
   
@@ -296,13 +340,15 @@ const generateDinner = (categorizedFoods, calorieTarget, usedIngredients, dayNum
   let currentCalories = 0;
   
   // 1. Lean protein (Fish, Poultry, Legume, or Tofu)
-  const protein = allFoods.find(f => 
+  const proteins = allFoods.filter(f => 
     ['Fish', 'Poultry', 'Legume', 'Tofu', 'Egg'].includes(f.food.category) &&
     !usedIngredients.proteins.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
   
-  if (protein) {
+  if (proteins.length > 0) {
+    const shuffledProteins = shuffleArray(proteins, randomOffset + dayNumber * 8);
+    const protein = shuffledProteins[0];
     meal.foods.push({
       food: protein.food,
       portion: 'Medium (100-150g)',
@@ -318,27 +364,33 @@ const generateDinner = (categorizedFoods, calorieTarget, usedIngredients, dayNum
     f.food.category === 'Vegetable' &&
     !usedIngredients.vegetables.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) * 2 <= calorieTarget * 1.1
-  ).slice(0, 2);
+  );
   
-  vegetables.forEach(veg => {
-    meal.foods.push({
-      food: veg.food,
-      portion: 'Medium (100g)',
-      preparation: 'Steamed, roasted, or raw salad',
-      calories_estimated: veg.modern_data.calories
+  if (vegetables.length > 0) {
+    const shuffledVegs = shuffleArray(vegetables, randomOffset + dayNumber * 9);
+    const selectedVegs = shuffledVegs.slice(0, 2);
+    selectedVegs.forEach(veg => {
+      meal.foods.push({
+        food: veg.food,
+        portion: 'Medium (100g)',
+        preparation: 'Steamed, roasted, or raw salad',
+        calories_estimated: veg.modern_data.calories
+      });
+      currentCalories += veg.modern_data.calories || 0;
+      usedIngredients.vegetables.add(veg.food.name);
     });
-    currentCalories += veg.modern_data.calories || 0;
-    usedIngredients.vegetables.add(veg.food.name);
-  });
+  }
   
   // 3. Light grain (optional, smaller portion)
-  const grain = allFoods.find(f => 
+  const grains = allFoods.filter(f => 
     ['Grain', 'Bread'].includes(f.food.category) &&
     !usedIngredients.grains.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) * 0.5 <= calorieTarget * 1.1
   );
   
-  if (grain) {
+  if (grains.length > 0) {
+    const shuffledGrains = shuffleArray(grains, randomOffset + dayNumber * 10);
+    const grain = shuffledGrains[0];
     meal.foods.push({
       food: grain.food,
       portion: 'Small (50-75g)',
@@ -358,7 +410,7 @@ const generateDinner = (categorizedFoods, calorieTarget, usedIngredients, dayNum
  * Target: 7-12% of daily calories (2 snacks per day)
  * Focus: Nutrient-dense, satisfying
  */
-const generateSnack = (categorizedFoods, calorieTarget, usedIngredients, snackNumber) => {
+const generateSnack = (categorizedFoods, calorieTarget, usedIngredients, snackNumber, randomOffset = 0) => {
   const { highly_recommended, moderate } = categorizedFoods;
   const allFoods = [...highly_recommended, ...moderate];
   
@@ -371,13 +423,15 @@ const generateSnack = (categorizedFoods, calorieTarget, usedIngredients, snackNu
   
   // Snack options: Fruit, Nut, Dairy, or Vegetable
   const snackCategories = ['Fruit', 'Nut', 'Dairy', 'Vegetable'];
-  const snackFood = allFoods.find(f => 
+  const snackFoods = allFoods.filter(f => 
     snackCategories.includes(f.food.category) &&
     !usedIngredients.snacks.has(f.food.name) &&
     (f.modern_data.calories || 0) <= calorieTarget * 1.2
   );
   
-  if (snackFood) {
+  if (snackFoods.length > 0) {
+    const shuffledSnacks = shuffleArray(snackFoods, randomOffset + snackNumber * 100);
+    const snackFood = shuffledSnacks[0];
     meal.foods.push({
       food: snackFood.food,
       portion: 'Small serving',
@@ -401,6 +455,10 @@ const generateSnack = (categorizedFoods, calorieTarget, usedIngredients, snackNu
 const generateWeeklyPlan = (clinicalProfile, categorizedFoods) => {
   const calorieTargets = calculateCalorieTargets(clinicalProfile);
   const macroTargets = calculateMacroTargets(clinicalProfile, calorieTargets.daily);
+  
+  // Generate a random offset based on timestamp for true variety on regeneration
+  const randomOffset = Date.now() % 1000000 + Math.floor(Math.random() * 100000);
+  console.log('🔀 Modern random offset for plan variety:', randomOffset);
   
   const weeklyPlan = [];
   
@@ -437,11 +495,11 @@ const generateWeeklyPlan = (clinicalProfile, categorizedFoods) => {
     };
     
     // Generate meals
-    dayPlan.meals.push(generateBreakfast(categorizedFoods, calorieTargets.breakfast, dailyUsedIngredients, day));
-    dayPlan.meals.push(generateSnack(categorizedFoods, calorieTargets.snacks * 0.4, dailyUsedIngredients, 1));
-    dayPlan.meals.push(generateLunch(categorizedFoods, calorieTargets.lunch, dailyUsedIngredients, day));
-    dayPlan.meals.push(generateSnack(categorizedFoods, calorieTargets.snacks * 0.6, dailyUsedIngredients, 2));
-    dayPlan.meals.push(generateDinner(categorizedFoods, calorieTargets.dinner, dailyUsedIngredients, day));
+    dayPlan.meals.push(generateBreakfast(categorizedFoods, calorieTargets.breakfast, dailyUsedIngredients, day, randomOffset));
+    dayPlan.meals.push(generateSnack(categorizedFoods, calorieTargets.snacks * 0.4, dailyUsedIngredients, 1, randomOffset));
+    dayPlan.meals.push(generateLunch(categorizedFoods, calorieTargets.lunch, dailyUsedIngredients, day, randomOffset));
+    dayPlan.meals.push(generateSnack(categorizedFoods, calorieTargets.snacks * 0.6, dailyUsedIngredients, 2, randomOffset));
+    dayPlan.meals.push(generateDinner(categorizedFoods, calorieTargets.dinner, dailyUsedIngredients, day, randomOffset));
     
     // Track global protein usage (limit to 3x per week)
     dailyUsedIngredients.proteins.forEach(protein => {

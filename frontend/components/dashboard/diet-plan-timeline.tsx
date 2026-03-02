@@ -127,6 +127,7 @@ export function DietPlanTimeline() {
       setError(null)
 
       const token = localStorage.getItem('nutrifusion_token')
+      
       if (!token) {
         setError('Please login to view your personalized diet plan')
         setLoading(false)
@@ -139,7 +140,7 @@ export function DietPlanTimeline() {
           'Content-Type': 'application/json'
         }
       })
-
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         if (response.status === 404) {
@@ -152,11 +153,7 @@ export function DietPlanTimeline() {
       }
 
       const data = await response.json()
-      console.log('📊 Diet Plan API Response:', data)
       if (data.success) {
-        console.log('✅ Diet Plan Data:', data.dietPlan)
-        console.log('✅ 7 Day Plan:', data.dietPlan?.['7_day_plan'])
-        console.log('✅ Framework:', data.framework)
         setDietPlan(data.dietPlan)
         setHealthProfile(data.healthProfile)
         setFramework(data.framework || 'ayurveda')
@@ -281,6 +278,7 @@ export function DietPlanTimeline() {
         toast.success('Diet plan regenerated successfully!')
         await fetchDietPlan()
         await fetchMealCompletions()
+        
         setCurrentDay(1)
       } else {
         const errorData = await response.json()
@@ -425,10 +423,7 @@ export function DietPlanTimeline() {
 
   const currentDayPlan = dietPlan['7_day_plan']?.[`day_${currentDay}`]
   
-  // If current day plan is not available, return error
   if (!currentDayPlan) {
-    console.error('❌ No diet plan found for day:', currentDay)
-    console.log('Available days:', Object.keys(dietPlan['7_day_plan'] || {}))
     return (
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">

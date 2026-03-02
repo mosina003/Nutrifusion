@@ -56,7 +56,6 @@ export function SummaryCards() {
         const data = await response.json()
         console.log('📊 Dashboard API response:', data)
         if (data.success) {
-          console.log('📊 Summary Cards Data:', data.data.summaryCards)
           setSummaryData(data.data.summaryCards)
         }
         
@@ -85,7 +84,6 @@ export function SummaryCards() {
           const completionData = await completionResponse.json()
           
           // Calculate consumed calories based on completed meals
-          // Average calories: breakfast=400, lunch=800, dinner=600
           const calorieMap: { [key: string]: number } = {
             breakfast: 400,
             lunch: 800,

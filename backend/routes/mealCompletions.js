@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MealCompletion = require('../models/MealCompletion');
 const Assessment = require('../models/Assessment');
+const DietPlan = require('../models/DietPlan');
 const { protect } = require('../middleware/auth');
 
 /**
@@ -149,18 +150,108 @@ router.post('/regenerate-plan', protect, async (req, res) => {
 
     // Generate new 7-day plan
     const newDietPlan = await dietPlanService.generateDietPlan(
-      req.user.id,
-      assessment._id,
-      { regenerate: true }
+      assessment.scores,  // Pass the assessment scores object
+      {}                  // Pass empty preferences object
     );
 
-    // Clear all existing completions for this user
+    // Update the assessment with the new diet plan
+    assessment.dietPlan = newDietPlan;
+    await assessment.save();
+
+    // Also update/create in DietPlan collection for consistency
+    const sevenDayPlan = newDietPlan['7_day_plan'] || newDietPlan.sevenDayPlan || newDietPlan;
+    
+    // Convert 7-day plan to meals array format
+    const mealsArray = [];
+    for (let day = 1; day <= 7; day++) {
+      const dayKey = `day_${day}`;
+      const dayMeals = sevenDayPlan[dayKey];
+      
+      if (dayMeals) {
+        if (dayMeals.breakfast) {
+          mealsArray.push({
+            day: day,
+            mealType: 'Breakfast',
+            foods: dayMeals.breakfast,
+            timing: 'Morning (7-9 AM)'
+          });
+        }
+        if (dayMeals.lunch) {
+          mealsArray.push({
+            day: day,
+            mealType: 'Lunch',
+            foods: dayMeals.lunch,
+            timing: 'Midday (12-2 PM)'
+          });
+        }
+        if (dayMeals.dinner) {
+          mealsArray.push({
+            day: day,
+            mealType: 'Dinner',
+            foods: dayMeals.dinner,
+            timing: 'Evening (6-8 PM)'
+          });
+        }
+      }
+    }
+
+    // Expire old diet plans for this user
+    await DietPlan.updateMany(
+      { 
+        userId: req.user.id, 
+        status: 'Active',
+        planType: framework
+      },
+      { 
+        status: 'Expired',
+        validTo: new Date()
+      }
+    );
+
+    // Create new diet plan
+    const validFrom = new Date();
+    const validTo = new Date();
+    validTo.setDate(validTo.getDate() + 7);
+
+    const dietPlanDoc = new DietPlan({
+      userId: req.user.id,
+      planName: `${framework.charAt(0).toUpperCase() + framework.slice(1)} Plan`,
+      planType: framework,
+      meals: mealsArray,
+      rulesApplied: [{
+        rule: 'Auto-generated diet plan',
+        details: {
+          topFoods: newDietPlan.top_ranked_foods || [],
+          reasoning: newDietPlan.reasoning_summary || 'Auto-generated plan',
+          avoidFoods: newDietPlan.avoidFoods || []
+        }
+      }],
+      status: 'Active',
+      validFrom: validFrom,
+      validTo: validTo
+    });
+
+    await dietPlanDoc.save();
+    console.log('✅ Created new DietPlan in database with ID:', dietPlanDoc._id);
+    console.log('🔀 Diet plan includes', Object.keys(sevenDayPlan).length, 'days');
+    console.log('📊 Sample day_1:', JSON.stringify(sevenDayPlan.day_1));
+
+    // Clear all existing completions for this user (start from day 1)
     await MealCompletion.deleteMany({ userId: req.user.id });
+
+    // Return the diet plan in the expected format
+    const response = {
+      '7_day_plan': sevenDayPlan,
+      top_ranked_foods: newDietPlan.top_ranked_foods || [],
+      reasoning_summary: newDietPlan.reasoning_summary || 'Auto-generated plan',
+      avoidFoods: newDietPlan.avoidFoods || []
+    };
 
     res.json({
       success: true,
-      message: 'Diet plan regenerated successfully',
-      dietPlan: newDietPlan
+      message: 'Diet plan regenerated successfully - All meals refreshed and tracking reset to Day 1',
+      dietPlan: response,
+      framework: framework
     });
   } catch (error) {
     console.error('Error regenerating plan:', error);

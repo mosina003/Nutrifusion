@@ -12,6 +12,35 @@
 const { scoreAllFoods } = require('./ayurvedaDietEngine');
 
 /**
+ * Simple seeded pseudo-random number generator (LCG algorithm)
+ */
+class SeededRandom {
+  constructor(seed) {
+    this.seed = seed % 2147483647;
+    if (this.seed <= 0) this.seed += 2147483646;
+  }
+
+  next() {
+    this.seed = (this.seed * 16807) % 2147483647;
+    return (this.seed - 1) / 2147483646;
+  }
+}
+
+/**
+ * Fisher-Yates shuffle algorithm with seeded randomization
+ */
+const shuffleArray = (array, seed = 0) => {
+  const arr = [...array];
+  const rng = new SeededRandom(seed);
+  
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng.next() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
+/**
  * Incompatible food combinations (Viruddha Ahara)
  * These should NOT be combined in the same meal
  */
@@ -39,7 +68,7 @@ const areIncompatible = (category1, category2) => {
  * - Warm, cooked foods preferred
  * - Avoid heavy proteins
  */
-const generateBreakfast = (categorizedFoods, agni, usedIngredients, dayNumber) => {
+const generateBreakfast = (categorizedFoods, agni, usedIngredients, dayNumber, randomOffset = 0) => {
   const { highly_recommended, moderate } = categorizedFoods;
   
   // Use both highly_recommended and moderate for more variety
@@ -59,19 +88,21 @@ const generateBreakfast = (categorizedFoods, agni, usedIngredients, dayNumber) =
     foods: []
   };
   
-  // Select 2-3 light foods with more variety
+  // Select 2-3 light foods with shuffling for true variety
   const availableGrains = breakfastFoods.filter(f => 
     f.food.category === 'Grain' && 
     !usedIngredients.grains.has(f.food.name)
   );
-  
-  const grain = availableGrains[dayNumber % availableGrains.length] || availableGrains[0];
+  const shuffledGrains = shuffleArray(availableGrains, randomOffset);
+  const grain = shuffledGrains[0];
   
   const availableFruits = breakfastFoods.filter(f => f.food.category === 'Fruit');
-  const fruit = availableFruits[(dayNumber - 1) % availableFruits.length];
+  const shuffledFruits = shuffleArray(availableFruits, randomOffset + dayNumber);
+  const fruit = shuffledFruits[0];
   
   const availableBeverages = breakfastFoods.filter(f => f.food.category === 'Beverage');
-  const beverage = availableBeverages[(dayNumber - 1) % availableBeverages.length];
+  const shuffledBeverages = shuffleArray(availableBeverages, randomOffset + dayNumber * 2);
+  const beverage = shuffledBeverages[0];
   
   if (grain) {
     meal.foods.push({
@@ -108,7 +139,7 @@ const generateBreakfast = (categorizedFoods, agni, usedIngredients, dayNumber) =
  * - Include grain, protein, vegetables
  * - Can be heavier and more substantial
  */
-const generateLunch = (categorizedFoods, dominantDosha, usedIngredients, dayNumber) => {
+const generateLunch = (categorizedFoods, dominantDosha, usedIngredients, dayNumber, randomOffset = 0) => {
   const { highly_recommended, moderate } = categorizedFoods;
   
   const allFoods = [...highly_recommended, ...moderate];
@@ -119,12 +150,13 @@ const generateLunch = (categorizedFoods, dominantDosha, usedIngredients, dayNumb
     foods: []
   };
   
-  // 1. Grain base - select from available unused grains
+  // 1. Grain base - select from shuffled grains for variety
   const availableGrains = allFoods.filter(f => 
     f.food.category === 'Grain' && 
     !usedIngredients.grains.has(f.food.name)
   );
-  const grain = availableGrains[(dayNumber - 1) % availableGrains.length] || availableGrains[0];
+  const shuffledGrains = shuffleArray(availableGrains, randomOffset + dayNumber * 3);
+  const grain = shuffledGrains[0];
   
   // 2. Protein (Legume, Dairy, or light Meat based on dosha)
   let availableProteins = [];
@@ -147,30 +179,17 @@ const generateLunch = (categorizedFoods, dominantDosha, usedIngredients, dayNumb
       !usedIngredients.proteins.has(f.food.name)
     );
   }
-  const protein = availableProteins[(dayNumber - 1) % availableProteins.length] || availableProteins[0];
+  const shuffledProteins = shuffleArray(availableProteins, randomOffset + dayNumber * 4);
+  const protein = shuffledProteins[0];
   
-  // 3. Vegetables (2 types) - ensure variety and NO DUPLICATES
+  // 3. Vegetables (2 types) - shuffle for variety, guaranteed different
   const availableVegetables = allFoods.filter(f => 
     f.food.category === 'Vegetable' &&
     !usedIngredients.vegetables.has(f.food.name)
   );
   
-  // Select 2 DIFFERENT vegetables
-  const vegetables = [];
-  if (availableVegetables.length > 0) {
-    const firstVegIndex = (dayNumber * 2 - 2) % availableVegetables.length;
-    vegetables.push(availableVegetables[firstVegIndex]);
-    
-    // Select second vegetable that's different from the first
-    if (availableVegetables.length > 1) {
-      let secondVegIndex = (dayNumber * 2 - 1) % availableVegetables.length;
-      // If same as first, pick the next one
-      if (secondVegIndex === firstVegIndex) {
-        secondVegIndex = (firstVegIndex + 1) % availableVegetables.length;
-      }
-      vegetables.push(availableVegetables[secondVegIndex]);
-    }
-  }
+  const shuffledVegetables = shuffleArray(availableVegetables, randomOffset + dayNumber * 5);
+  const vegetables = shuffledVegetables.slice(0, 2);
   
   // 4. Oil/Spice for cooking
   const oil = allFoods.find(f => f.food.category === 'Oil');
@@ -230,7 +249,7 @@ const generateLunch = (categorizedFoods, dominantDosha, usedIngredients, dayNumb
  * - Warm, cooked foods
  * - Avoid heavy proteins and raw foods
  */
-const generateDinner = (categorizedFoods, dominantDosha, agni, usedIngredients, dayNumber) => {
+const generateDinner = (categorizedFoods, dominantDosha, agni, usedIngredients, dayNumber, randomOffset = 0) => {
   const { highly_recommended, moderate } = categorizedFoods;
   
   // Use both tiers for more variety
@@ -248,35 +267,22 @@ const generateDinner = (categorizedFoods, dominantDosha, agni, usedIngredients, 
     (!f.ayurveda_data.guna || !f.ayurveda_data.guna.includes('Heavy'))
   );
   
-  // Light grain or nothing - use different grains if available
+  // Light grain - shuffle for variety
   const availableGrains = lightFoods.filter(f => 
     f.food.category === 'Grain' &&
     !usedIngredients.grains.has(f.food.name)
   );
-  const grain = availableGrains[(dayNumber - 1) % availableGrains.length] || availableGrains[0];
+  const shuffledGrains = shuffleArray(availableGrains, randomOffset + dayNumber * 6);
+  const grain = shuffledGrains[0];
   
-  // Vegetables (1-2 types, cooked) - ensure variety and NO DUPLICATES
+  // Vegetables (1-2 types, cooked) - shuffle for variety
   const availableVegetables = lightFoods.filter(f => 
     f.food.category === 'Vegetable' &&
     !usedIngredients.vegetables.has(f.food.name)
   );
   
-  // Select 2 DIFFERENT vegetables
-  const vegetables = [];
-  if (availableVegetables.length > 0) {
-    const firstVegIndex = (dayNumber * 3 - 3) % availableVegetables.length;
-    vegetables.push(availableVegetables[firstVegIndex]);
-    
-    // Select second vegetable that's different from the first
-    if (availableVegetables.length > 1) {
-      let secondVegIndex = (dayNumber * 3 - 2) % availableVegetables.length;
-      // If same as first, pick the next one
-      if (secondVegIndex === firstVegIndex) {
-        secondVegIndex = (firstVegIndex + 1) % availableVegetables.length;
-      }
-      vegetables.push(availableVegetables[secondVegIndex]);
-    }
-  }
+  const shuffledVegetables = shuffleArray(availableVegetables, randomOffset + dayNumber * 7);
+  const vegetables = shuffledVegetables.slice(0, 2);
   
   if (grain && agni !== 'Slow') {
     meal.foods.push({
@@ -319,6 +325,10 @@ const generateDinner = (categorizedFoods, dominantDosha, agni, usedIngredients, 
 const generateWeeklyPlan = (assessmentResult, categorizedFoods) => {
   const { dominant_dosha, agni } = assessmentResult;
   
+  // Generate a random offset based on timestamp for true variety on regeneration
+  const randomOffset = Date.now() % 1000000 + Math.floor(Math.random() * 100000);
+  console.log('🔀 Ayurveda random offset for plan variety:', randomOffset);
+  
   const weeklyPlan = [];
   
   // Track ingredient usage to ensure variety
@@ -338,10 +348,10 @@ const generateWeeklyPlan = (assessmentResult, categorizedFoods) => {
       meals: []
     };
     
-    // Generate meals with unique ingredients across all 7 days
-    dayPlan.meals.push(generateBreakfast(categorizedFoods, agni, dayUsage, day));
-    dayPlan.meals.push(generateLunch(categorizedFoods, dominant_dosha, dayUsage, day));
-    dayPlan.meals.push(generateDinner(categorizedFoods, dominant_dosha, agni, dayUsage, day));
+    // Generate meals with unique ingredients across all 7 days (pass random offset)
+    dayPlan.meals.push(generateBreakfast(categorizedFoods, agni, dayUsage, day, randomOffset));
+    dayPlan.meals.push(generateLunch(categorizedFoods, dominant_dosha, dayUsage, day, randomOffset));
+    dayPlan.meals.push(generateDinner(categorizedFoods, dominant_dosha, agni, dayUsage, day, randomOffset));
     
     // Add general guidelines
     dayPlan.guidelines = [
