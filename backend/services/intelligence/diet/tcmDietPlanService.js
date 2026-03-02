@@ -42,37 +42,37 @@ class TCMDietPlanService {
 
       console.log('✅ Generated 7-day TCM meal plan');
 
-      // Return complete response
+      // Return complete response in format matching Ayurveda (for consistency)
       return {
-        success: true,
-        data: {
-          user_profile: {
-            primary_pattern: userAssessment.primary_pattern,
-            secondary_pattern: userAssessment.secondary_pattern,
-            cold_heat: userAssessment.cold_heat,
-            severity: userAssessment.severity
-          },
-          food_rankings: {
-            highly_recommended: rankedFoods.top_ranked_foods.slice(0, 20).map(f => ({
-              name: f.food_name,
-              category: f.category,
-              score: f.score,
-              reasons: f.reasons
-            })),
-            moderately_recommended: rankedFoods.top_ranked_foods.slice(20, 40).map(f => ({
-              name: f.food_name,
-              category: f.category,
-              score: f.score
-            })),
-            avoid: rankedFoods.avoid_foods.slice(0, 15).map(f => ({
-              name: f.food_name,
-              category: f.category,
-              score: f.score,
-              reasons: f.reasons
-            }))
-          },
-          meal_plan: mealPlan
-        }
+        '7_day_plan': mealPlan['7_day_plan'],
+        top_ranked_foods: mealPlan.top_ranked_foods,
+        reasoning_summary: mealPlan.reasoning_summary,
+        user_profile: {
+          primary_pattern: userAssessment.primary_pattern,
+          secondary_pattern: userAssessment.secondary_pattern,
+          cold_heat: userAssessment.cold_heat,
+          severity: userAssessment.severity
+        },
+        food_rankings: {
+          highly_recommended: rankedFoods.top_ranked_foods.slice(0, 20).map(f => ({
+            name: f.food_name,
+            category: f.category,
+            score: f.score,
+            reasons: f.reasons
+          })),
+          moderately_recommended: rankedFoods.top_ranked_foods.slice(20, 40).map(f => ({
+            name: f.food_name,
+            category: f.category,
+            score: f.score
+          })),
+          avoid: rankedFoods.avoid_foods.slice(0, 15).map(f => ({
+            name: f.food_name,
+            category: f.category,
+            score: f.score,
+            reasons: f.reasons
+          }))
+        },
+        avoidFoods: rankedFoods.avoid_foods.slice(0, 15).map(f => f.food_name)
       };
     } catch (error) {
       console.error('Error generating TCM diet plan:', error);

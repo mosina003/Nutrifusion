@@ -8,6 +8,8 @@ const AssessmentEngine = require('../services/assessment');
 const questionBanks = require('../services/assessment/questionBanks');
 const ayurvedaDietPlanService = require('../services/intelligence/diet/ayurvedaDietPlanService');
 const unaniDietPlanService = require('../services/intelligence/diet/unaniDietPlanService');
+const tcmDietPlanService = require('../services/intelligence/diet/tcmDietPlanService');
+const modernDietPlanService = require('../services/intelligence/diet/modernDietPlanService');
 
 /**
  * @route   GET /api/assessments/frameworks
@@ -174,24 +176,10 @@ router.post('/submit', protect, async (req, res) => {
             {} // No special preferences
           );
           console.log('✅ Unani diet plan generated successfully');
-          console.log('📊 Diet plan structure keys:', Object.keys(dietPlanData));
-          console.log('📊 Has data?', !!dietPlanData.data);
-          console.log('📊 Has meal_plan?', !!dietPlanData.data?.meal_plan);
-          console.log('📊 Has 7_day_plan?', !!dietPlanData.data?.meal_plan?.['7_day_plan']);
-
-          // Convert to DietPlan schema
-          const sevenDayPlan = dietPlanData.data?.meal_plan?.['7_day_plan'];
-          console.log('📅 7-day plan type:', typeof sevenDayPlan);
-          console.log('📅 7-day plan keys:', Object.keys(sevenDayPlan || {}));
-          console.log('📅 Day 1 data:', JSON.stringify(sevenDayPlan?.day_1, null, 2));
           
-          const meals = convertSevenDayPlanToMeals(sevenDayPlan);
+          // Convert to DietPlan schema (same format as Ayurveda now)
+          const meals = convertSevenDayPlanToMeals(dietPlanData['7_day_plan']);
           console.log('🍽️ Converted meals count:', meals.length);
-          if (meals.length > 0) {
-            console.log('🍽️ Sample meal:', JSON.stringify(meals[0], null, 2));
-          } else {
-            console.log('⚠️  NO MEALS CONVERTED - Conversion failed!');
-          }
           
           const dietPlan = new DietPlan({
             userId,
@@ -201,8 +189,9 @@ router.post('/submit', protect, async (req, res) => {
             rulesApplied: [{
               framework: 'unani',
               details: {
-                reasoning: dietPlanData.data.meal_plan.reasoning_summary || 'Auto-generated from assessment',
-                topFoods: dietPlanData.data.meal_plan.top_ranked_foods || [],
+                reasoning: dietPlanData.reasoning_summary || 'Auto-generated from assessment',
+                topFoods: dietPlanData.top_ranked_foods || [],
+                avoidFoods: dietPlanData.avoidFoods || [],
                 primary_mizaj: result.scores.primary_mizaj,
                 dominant_humor: result.scores.dominant_humor,
                 sourceAssessmentId: assessment._id
@@ -224,6 +213,102 @@ router.post('/submit', protect, async (req, res) => {
           console.log('✅ Unani diet plan saved to DietPlan collection:', dietPlanId);
         } catch (dietPlanError) {
           console.error('⚠️  Unani diet plan generation/save failed:', dietPlanError.message);
+          console.error('Error details:', dietPlanError);
+          // Continue without diet plan - non-critical error
+        }
+      } else if (framework === 'tcm' && result.scores) {
+        try {
+          console.log('🔄 Generating TCM diet plan with scores:', JSON.stringify(result.scores, null, 2));
+          const dietPlanData = await tcmDietPlanService.generateDietPlan(
+            result.scores,
+            {} // No special preferences
+          );
+          console.log('✅ TCM diet plan generated successfully');
+          
+          // Convert to DietPlan schema (same format as Ayurveda now)
+          const meals = convertSevenDayPlanToMeals(dietPlanData['7_day_plan']);
+          console.log('🍽️ Converted meals count:', meals.length);
+          
+          const dietPlan = new DietPlan({
+            userId,
+            planName: `TCM Auto-Generated Plan`,
+            planType: 'tcm',
+            meals: meals,
+            rulesApplied: [{
+              framework: 'tcm',
+              details: {
+                reasoning: dietPlanData.reasoning_summary || 'Auto-generated from assessment',
+                topFoods: dietPlanData.top_ranked_foods || [],
+                avoidFoods: dietPlanData.avoidFoods || [],
+                primary_pattern: result.scores.primary_pattern,
+                secondary_pattern: result.scores.secondary_pattern,
+                sourceAssessmentId: assessment._id
+              }
+            }],
+            status: 'Active',
+            createdBy: userId,
+            createdByModel: 'System',
+            validFrom: new Date(),
+            validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            metadata: {
+              sourceAssessmentId: assessment._id,
+              generatedAt: new Date()
+            }
+          });
+
+          await dietPlan.save();
+          dietPlanId = dietPlan._id;
+          console.log('✅ TCM diet plan saved to DietPlan collection:', dietPlanId);
+        } catch (dietPlanError) {
+          console.error('⚠️  TCM diet plan generation/save failed:', dietPlanError.message);
+          console.error('Error details:', dietPlanError);
+          // Continue without diet plan - non-critical error
+        }
+      } else if (framework === 'modern' && result.scores) {
+        try {
+          console.log('🔄 Generating Modern diet plan with scores:', JSON.stringify(result.scores, null, 2));
+          const dietPlanData = await modernDietPlanService.generateDietPlan(
+            result.scores,
+            {} // No special preferences
+          );
+          console.log('✅ Modern diet plan generated successfully');
+          
+          // Convert to DietPlan schema (same format as Ayurveda now)
+          const meals = convertSevenDayPlanToMeals(dietPlanData['7_day_plan']);
+          console.log('🍽️ Converted meals count:', meals.length);
+          
+          const dietPlan = new DietPlan({
+            userId,
+            planName: `Modern Auto-Generated Plan`,
+            planType: 'modern',
+            meals: meals,
+            rulesApplied: [{
+              framework: 'modern',
+              details: {
+                reasoning: dietPlanData.reasoning_summary || 'Auto-generated from assessment',
+                topFoods: dietPlanData.top_ranked_foods || [],
+                avoidFoods: dietPlanData.avoidFoods || [],
+                metabolic_risk_level: result.scores.metabolic_risk_level,
+                bmi: dietPlanData.user_profile?.bmi,
+                sourceAssessmentId: assessment._id
+              }
+            }],
+            status: 'Active',
+            createdBy: userId,
+            createdByModel: 'System',
+            validFrom: new Date(),
+            validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            metadata: {
+              sourceAssessmentId: assessment._id,
+              generatedAt: new Date()
+            }
+          });
+
+          await dietPlan.save();
+          dietPlanId = dietPlan._id;
+          console.log('✅ Modern diet plan saved to DietPlan collection:', dietPlanId);
+        } catch (dietPlanError) {
+          console.error('⚠️  Modern diet plan generation/save failed:', dietPlanError.message);
           console.error('Error details:', dietPlanError);
           // Continue without diet plan - non-critical error
         }

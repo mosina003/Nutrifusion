@@ -32,38 +32,38 @@ class UnaniDietPlanService {
 
       console.log('✅ Generated 7-day meal plan');
 
-      // Return complete response
+      // Return complete response in format matching Ayurveda (for consistency)
       return {
-        success: true,
-        data: {
-          user_profile: {
-            primary_mizaj: userAssessment.primary_mizaj,
-            secondary_mizaj: userAssessment.secondary_mizaj,
-            dominant_humor: userAssessment.dominant_humor,
-            severity: userAssessment.severity,
-            digestive_strength: userAssessment.digestive_strength
-          },
-          food_rankings: {
-            highly_suitable: rankedFoods.highly_suitable.slice(0, 20).map(f => ({
-              name: f.food_name,
-              category: f.category,
-              score: f.score,
-              reasons: f.reasons
-            })),
-            moderately_suitable: rankedFoods.moderately_suitable.slice(0, 15).map(f => ({
-              name: f.food_name,
-              category: f.category,
-              score: f.score
-            })),
-            avoid: rankedFoods.avoid.slice(0, 15).map(f => ({
-              name: f.food_name,
-              category: f.category,
-              score: f.score,
-              reasons: f.reasons
-            }))
-          },
-          meal_plan: mealPlan
-        }
+        '7_day_plan': mealPlan['7_day_plan'],
+        top_ranked_foods: mealPlan.top_ranked_foods,
+        reasoning_summary: mealPlan.reasoning_summary,
+        user_profile: {
+          primary_mizaj: userAssessment.primary_mizaj,
+          secondary_mizaj: userAssessment.secondary_mizaj,
+          dominant_humor: userAssessment.dominant_humor,
+          severity: userAssessment.severity,
+          digestive_strength: userAssessment.digestive_strength
+        },
+        food_rankings: {
+          highly_suitable: rankedFoods.highly_suitable.slice(0, 20).map(f => ({
+            name: f.food_name,
+            category: f.category,
+            score: f.score,
+            reasons: f.reasons
+          })),
+          moderately_suitable: rankedFoods.moderately_suitable.slice(0, 15).map(f => ({
+            name: f.food_name,
+            category: f.category,
+            score: f.score
+          })),
+          avoid: rankedFoods.avoid.slice(0, 15).map(f => ({
+            name: f.food_name,
+            category: f.category,
+            score: f.score,
+            reasons: f.reasons
+          }))
+        },
+        avoidFoods: rankedFoods.avoid.slice(0, 15).map(f => f.food_name)
       };
     } catch (error) {
       console.error('Error generating Unani diet plan:', error);

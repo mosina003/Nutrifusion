@@ -1,7 +1,7 @@
 'use client'
 
 import { Clock, Leaf, AlertCircle } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { DaySelector } from './day-selector'
 import { StatusChips } from './status-chips'
@@ -78,11 +78,26 @@ export function DietPlanTimeline() {
   const [error, setError] = useState<string | null>(null)
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlanDay[]>([])
   const [completions, setCompletions] = useState<Map<string, MealCompletion>>(new Map())
+  const hasAttemptedRegenerate = useRef(false)
 
   useEffect(() => {
     fetchDietPlan()
     fetchMealCompletions()
   }, [])
+
+  // Auto-regenerate if diet plan is empty (only once)
+  useEffect(() => {
+    if (!loading && !hasAttemptedRegenerate.current && dietPlan) {
+      const hasEmptyData = !dietPlan['7_day_plan'] || 
+                          Object.keys(dietPlan['7_day_plan']).length === 0 ||
+                          !dietPlan['7_day_plan']['day_1']?.breakfast?.length
+      
+      if (hasEmptyData && !regenerating) {
+        hasAttemptedRegenerate.current = true
+        regeneratePlanSilent()  // Silent version without toast
+      }
+    }
+  }, [loading, dietPlan])
 
   // Generate weekly plan from diet plan data
   useEffect(() => {
@@ -275,10 +290,12 @@ export function DietPlanTimeline() {
 
       if (response.ok) {
         const data = await response.json()
+        if (data.success && data.dietPlan) {
+          setDietPlan(data.dietPlan)
+          setFramework(data.framework || framework)
+        }
         toast.success('Diet plan regenerated successfully!')
-        await fetchDietPlan()
         await fetchMealCompletions()
-        
         setCurrentDay(1)
       } else {
         const errorData = await response.json()
@@ -291,7 +308,45 @@ export function DietPlanTimeline() {
       setRegenerating(false)
     }
   }
+  // Silent version for auto-generation (no toast notifications)
+  const regeneratePlanSilent = async () => {
+    setRegenerating(true)
+    const token = localStorage.getItem('nutrifusion_token')
+    if (!token) {
+      setRegenerating(false)
+      return
+    }
 
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/meal-completions/regenerate-plan`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('🔄 Auto-generated diet plan:', data)
+        if (data.success && data.dietPlan) {
+          console.log('✅ Setting diet plan with 7_day_plan:', data.dietPlan['7_day_plan'])
+          setDietPlan(data.dietPlan)
+          setFramework(data.framework || framework)
+        } else {
+          console.error('❌ No diet plan in response:', data)
+        }
+        await fetchMealCompletions()
+        setCurrentDay(1)
+      } else {
+        console.error('❌ Regenerate failed:', response.status)
+      }
+    } catch (err) {
+      console.error('Error auto-generating plan:', err)
+    } finally {
+      setRegenerating(false)
+    }
+  }
   const replaceMeal = async (mealType: string) => {
     const token = localStorage.getItem('nutrifusion_token')
     if (!token) return
@@ -381,7 +436,7 @@ export function DietPlanTimeline() {
     }
   }
 
-  if (loading) {
+  if (loading || regenerating) {
     return (
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
@@ -390,7 +445,9 @@ export function DietPlanTimeline() {
         </h2>
         <div className="bg-white rounded-2xl p-12 shadow-md text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading your personalized diet plan...</p>
+          <p className="text-slate-600">
+            {regenerating ? 'Generating your personalized diet plan...' : 'Loading your personalized diet plan...'}
+          </p>
         </div>
       </section>
     )
@@ -419,26 +476,36 @@ export function DietPlanTimeline() {
     )
   }
 
-  if (!dietPlan) return null
-
-  const currentDayPlan = dietPlan['7_day_plan']?.[`day_${currentDay}`]
-  
-  if (!currentDayPlan) {
+  if (!dietPlan || !dietPlan['7_day_plan']) {
+    console.log('⚠️ No diet plan or 7_day_plan:', { hasDietPlan: !!dietPlan, has7DayPlan: !!dietPlan?.['7_day_plan'] })
     return (
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
           <Clock className="w-6 h-6 text-blue-600" />
           Your Personalized Diet Plan
         </h2>
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
-          <AlertCircle className="w-12 h-12 text-amber-600 mx-auto mb-4" />
-          <p className="text-amber-800 mb-4">Diet plan data is incomplete. Please regenerate your plan.</p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white"
-          >
-            Reload Page
-          </Button>
+        <div className="bg-white rounded-2xl p-12 shadow-md text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Preparing your diet plan...</p>
+        </div>
+      </section>
+    )
+  }
+
+  const currentDayPlan = dietPlan['7_day_plan']?.[`day_${currentDay}`]
+  if (!currentDayPlan) {
+    console.log('⚠️ No current day plan for day:', currentDay)
+    console.log('📋 Available days:', Object.keys(dietPlan['7_day_plan']))
+    console.log('📊 Diet plan structure:', dietPlan)
+    return (
+      <section className="mb-8">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <Clock className="w-6 h-6 text-blue-600" />
+          Your Personalized Diet Plan
+        </h2>
+        <div className="bg-white rounded-2xl p-12 shadow-md text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading day {currentDay} meal plan...</p>
         </div>
       </section>
     )

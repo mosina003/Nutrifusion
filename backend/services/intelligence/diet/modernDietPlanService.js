@@ -198,12 +198,32 @@ const generateDietPlan = async (clinicalProfile, preferences = {}) => {
     // Step 5: Generate reasoning and summary
     const reasoning = _generateReasoning(clinicalProfile, categorizedFoods);
     
-    // Step 6: Return complete plan
+    // Step 6: Transform weeklyPlan array to 7_day_plan object format
+    const sevenDayPlan = {};
+    weeklyPlan.forEach((dayPlan, index) => {
+      const dayKey = `day_${index + 1}`;
+      sevenDayPlan[dayKey] = {
+        breakfast: dayPlan.meals.filter(m => m.meal_type === 'Breakfast'),
+        lunch: dayPlan.meals.filter(m => m.meal_type === 'Lunch'),
+        dinner: dayPlan.meals.filter(m => m.meal_type === 'Dinner'),
+        snacks: dayPlan.meals.filter(m => m.meal_type === 'Snack'),
+        daily_targets: dayPlan.daily_targets,
+        total_calories_estimated: dayPlan.total_calories_estimated
+      };
+    });
+    
+    // Step 7: Return complete plan in standardized format
     return {
-      weeklyPlan,
-      reasoning,
-      topRecommendations: categorizedFoods.highly_recommended.slice(0, 20),
+      '7_day_plan': sevenDayPlan,
+      top_ranked_foods: categorizedFoods.highly_recommended.slice(0, 20),
+      reasoning_summary: reasoning.constitution_summary || JSON.stringify(reasoning),
       avoidFoods: categorizedFoods.avoid.slice(0, 15),
+      user_profile: {
+        bmi: clinicalProfile.anthropometric.bmi,
+        bmr: clinicalProfile.anthropometric.bmr_kcal,
+        tdee: clinicalProfile.anthropometric.tdee_kcal,
+        metabolic_risk_level: clinicalProfile.metabolic_risk_level
+      },
       summary: {
         total_foods_scored: 
           categorizedFoods.highly_recommended.length + 
@@ -211,11 +231,7 @@ const generateDietPlan = async (clinicalProfile, preferences = {}) => {
           categorizedFoods.avoid.length,
         highly_recommended_count: categorizedFoods.highly_recommended.length,
         moderate_count: categorizedFoods.moderate.length,
-        avoid_count: categorizedFoods.avoid.length,
-        bmi: clinicalProfile.anthropometric.bmi,
-        bmr: clinicalProfile.anthropometric.bmr_kcal,
-        tdee: clinicalProfile.anthropometric.tdee_kcal,
-        metabolic_risk_level: clinicalProfile.metabolic_risk_level
+        avoid_count: categorizedFoods.avoid.length
       }
     };
     
