@@ -40,10 +40,15 @@ const loadModernFoods = () => {
  * Transform JSON food format to engine format
  */
 const transformJSONFood = (jsonFood) => {
+  // Capitalize category to match meal generation expectations
+  const category = jsonFood.category 
+    ? jsonFood.category.charAt(0).toUpperCase() + jsonFood.category.slice(1).toLowerCase()
+    : 'Other';
+  
   return {
     _id: jsonFood.food_name,
     name: jsonFood.food_name,
-    category: jsonFood.category,
+    category: category,
     modernNutrition: {
       perUnit: '100g',
       calories: jsonFood.calories || 0,

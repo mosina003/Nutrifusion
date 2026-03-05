@@ -155,9 +155,9 @@ const generateBreakfast = (categorizedFoods, calorieTarget, usedIngredients, day
   
   let currentCalories = 0;
   
-  // 1. Protein source (Egg, Dairy, Legume, or Nut)
+  // 1. Protein source (Dairy, Legume for breakfast)
   const proteins = allFoods.filter(f => 
-    ['Egg', 'Dairy', 'Legume', 'Nut'].includes(f.food.category) &&
+    ['Dairy', 'Legume'].includes(f.food.category) &&
     !usedIngredients.proteins.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
@@ -175,9 +175,9 @@ const generateBreakfast = (categorizedFoods, calorieTarget, usedIngredients, day
     usedIngredients.proteins.add(protein.food.name);
   }
   
-  // 2. Whole grain (Grain, Bread)
+  // 2. Whole grain (Grain category)
   const grains = allFoods.filter(f => 
-    ['Grain', 'Bread'].includes(f.food.category) &&
+    f.food.category === 'Grain' &&
     !usedIngredients.grains.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
@@ -237,9 +237,9 @@ const generateLunch = (categorizedFoods, calorieTarget, usedIngredients, dayNumb
   
   let currentCalories = 0;
   
-  // 1. Main protein (Meat, Poultry, Fish, Legume, or Tofu)
+  // 1. Main protein (Meat or Legume)
   const proteins = allFoods.filter(f => 
-    ['Meat', 'Poultry', 'Fish', 'Legume', 'Tofu'].includes(f.food.category) &&
+    ['Meat', 'Legume'].includes(f.food.category) &&
     !usedIngredients.proteins.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
@@ -339,9 +339,9 @@ const generateDinner = (categorizedFoods, calorieTarget, usedIngredients, dayNum
   
   let currentCalories = 0;
   
-  // 1. Lean protein (Fish, Poultry, Legume, or Tofu)
+  // 1. Lean protein (Legume or Meat - lighter for dinner)
   const proteins = allFoods.filter(f => 
-    ['Fish', 'Poultry', 'Legume', 'Tofu', 'Egg'].includes(f.food.category) &&
+    ['Legume', 'Meat'].includes(f.food.category) &&
     !usedIngredients.proteins.has(f.food.name) &&
     currentCalories + (f.modern_data.calories || 0) <= calorieTarget * 1.1
   );
@@ -421,14 +421,15 @@ const generateSnack = (categorizedFoods, calorieTarget, usedIngredients, snackNu
     foods: []
   };
   
-  // Snack options: Fruit, Nut, Dairy, or Vegetable
-  const snackCategories = ['Fruit', 'Nut', 'Dairy', 'Vegetable'];
+  // Snack options: Fruit, Dairy, Vegetable, or Beverage
+  const snackCategories = ['Fruit', 'Dairy', 'Vegetable', 'Beverage'];
   const snackFoods = allFoods.filter(f => 
     snackCategories.includes(f.food.category) &&
     !usedIngredients.snacks.has(f.food.name) &&
     (f.modern_data.calories || 0) <= calorieTarget * 1.2
   );
   
+  let totalSnackCalories = 0;
   if (snackFoods.length > 0) {
     const shuffledSnacks = shuffleArray(snackFoods, randomOffset + snackNumber * 100);
     const snackFood = shuffledSnacks[0];
@@ -439,9 +440,10 @@ const generateSnack = (categorizedFoods, calorieTarget, usedIngredients, snackNu
       calories_estimated: snackFood.modern_data.calories
     });
     usedIngredients.snacks.add(snackFood.food.name);
+    totalSnackCalories = snackFood.modern_data.calories || 0;
   }
   
-  meal.total_calories_estimated = snackFood?.modern_data.calories || 0;
+  meal.total_calories_estimated = totalSnackCalories;
   return meal;
 };
 

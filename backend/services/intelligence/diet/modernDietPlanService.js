@@ -160,6 +160,38 @@ const _generateReasoning = (clinicalProfile, categorizedFoods) => {
     reasoning.lifestyle_recommendations.push('Ensuring adequate carbohydrate and protein intake to fuel activity');
   }
   
+  // Build human-readable constitution summary
+  const bmi = clinicalProfile.anthropometric?.bmi || 0;
+  const bmiCategory = clinicalProfile.anthropometric?.bmi_category || 'normal';
+  const primaryGoal = (goals[0] || 'metabolic_health').replace('_', ' ');
+  
+  const summaryParts = [];
+  
+  // BMI and metabolic status
+  summaryParts.push(`Your BMI is ${bmi.toFixed(1)} (${bmiCategory}), with ${riskLevel || 'low'} metabolic risk.`);
+  
+  // Primary focus
+  if (reasoning.primary_focus.length > 0) {
+    summaryParts.push(`This plan focuses on ${primaryGoal}, emphasizing ${reasoning.primary_focus[0].toLowerCase()}.`);
+  }
+  
+  // Metabolic considerations
+  if (reasoning.metabolic_considerations.length > 0) {
+    summaryParts.push(reasoning.metabolic_considerations[0] + '.');
+  }
+  
+  // Dietary adjustments
+  if (reasoning.dietary_adjustments.length > 0) {
+    summaryParts.push('Dietary adjustments include ' + reasoning.dietary_adjustments[0].toLowerCase() + '.');
+  }
+  
+  // Lifestyle support
+  if (reasoning.lifestyle_recommendations.length > 0) {
+    summaryParts.push('For optimal results, ' + reasoning.lifestyle_recommendations[0].toLowerCase() + '.');
+  }
+  
+  reasoning.constitution_summary = summaryParts.join(' ');
+  
   return reasoning;
 };
 
@@ -202,11 +234,27 @@ const generateDietPlan = async (clinicalProfile, preferences = {}) => {
     const sevenDayPlan = {};
     weeklyPlan.forEach((dayPlan, index) => {
       const dayKey = `day_${index + 1}`;
+      
+      // Extract food names from meal objects
+      const extractFoodNames = (meals) => {
+        const foodNames = [];
+        meals.forEach(meal => {
+          if (meal.foods && Array.isArray(meal.foods)) {
+            meal.foods.forEach(foodItem => {
+              if (foodItem.food && foodItem.food.name) {
+                foodNames.push(foodItem.food.name);
+              }
+            });
+          }
+        });
+        return foodNames;
+      };
+      
       sevenDayPlan[dayKey] = {
-        breakfast: dayPlan.meals.filter(m => m.meal_type === 'Breakfast'),
-        lunch: dayPlan.meals.filter(m => m.meal_type === 'Lunch'),
-        dinner: dayPlan.meals.filter(m => m.meal_type === 'Dinner'),
-        snacks: dayPlan.meals.filter(m => m.meal_type === 'Snack'),
+        breakfast: extractFoodNames(dayPlan.meals.filter(m => m.meal_type === 'Breakfast')),
+        lunch: extractFoodNames(dayPlan.meals.filter(m => m.meal_type === 'Lunch')),
+        dinner: extractFoodNames(dayPlan.meals.filter(m => m.meal_type === 'Dinner')),
+        snacks: extractFoodNames(dayPlan.meals.filter(m => m.meal_type && m.meal_type.includes('Snack'))),
         daily_targets: dayPlan.daily_targets,
         total_calories_estimated: dayPlan.total_calories_estimated
       };
