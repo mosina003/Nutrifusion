@@ -46,9 +46,9 @@ const evaluateTCM = (user, food) => {
   const assessment = _transformUserToAssessment(user);
 
   // Debug: Log assessment transformation for sample foods
-  if (food.name === 'Pizza' || Math.random() < 0.05) {
-    console.log(`🔄 [TCM Transform] ${food.name}: assessment=`, JSON.stringify(assessment));
-  }
+  // if (food.name === 'Pizza' || Math.random() < 0.05) {
+  //   console.log(`🔄 [TCM Transform] ${food.name}: assessment=`, JSON.stringify(assessment));
+  // }
 
   // Delegate to comprehensive TCM Diet Engine
   const scored = tcmDietEngine.scoreFood(food, assessment);
@@ -62,9 +62,9 @@ const evaluateTCM = (user, food) => {
   const normalizedScore = Math.round(scored.score * 0.75);
   
   // Debug: Log scoring results for sample foods
-  if (food.name === 'Pizza' || Math.random() < 0.05) {
-    console.log(`⚖️ [TCM Score] ${food.name}: raw=${scored.score}, normalized=${normalizedScore}, valid=${scored.valid}`);
-  }
+  // if (food.name === 'Pizza' || Math.random() < 0.05) {
+  //   console.log(`⚖️ [TCM Score] ${food.name}: raw=${scored.score}, normalized=${normalizedScore}, valid=${scored.valid}`);
+  // }
 
   return createRuleResult(
     normalizedScore,

@@ -318,12 +318,12 @@ router.post('/login', async (req, res) => {
         email: user.email
       });
 
-      console.log('✅ User login (unified) - Assessment status:', {
-        userId: user._id,
-        email: user.email,
-        hasCompletedAssessment: user.hasCompletedAssessment,
-        preferredMedicalFramework: user.preferredMedicalFramework
-      });
+      // console.log('✅ User login (unified) - Assessment status:', {
+      //   userId: user._id,
+      //   email: user.email,
+      //   hasCompletedAssessment: user.hasCompletedAssessment,
+      //   preferredMedicalFramework: user.preferredMedicalFramework
+      // });
 
       return res.status(200).json({
         success: true,

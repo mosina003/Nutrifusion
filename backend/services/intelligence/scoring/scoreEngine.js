@@ -45,12 +45,12 @@ const calculateFoodScore = async (user, food, options = {}) => {
   }
   
   // Debug: Log framework detection for first food only
-  if (food.name === 'Pizza' || Math.random() < 0.05) {
-    console.log(`🔍 [ScoreEngine] Food: ${food.name}, Framework: ${userFramework}`);
-    if (userFramework === 'tcm') {
-      console.log(`📊 [TCM Assessment]:`, JSON.stringify(user.tcmAssessment));
-    }
-  }
+  // if (food.name === 'Pizza' || Math.random() < 0.05) {
+  //   console.log(`🔍 [ScoreEngine] Food: ${food.name}, Framework: ${userFramework}`);
+  //   if (userFramework === 'tcm') {
+  //     console.log(`📊 [TCM Assessment]:`, JSON.stringify(user.tcmAssessment));
+  //   }
+  // }
 
   // Evaluate only the user's framework + safety (always applied)
   let ayurvedaResult = { scoreDelta: 0, reasons: [], warnings: [], block: false };
@@ -66,9 +66,9 @@ const calculateFoodScore = async (user, food, options = {}) => {
   } else if (userFramework === 'tcm') {
     tcmResult = evaluateTCM(user, food);
     // Debug: Log TCM scoring for first food
-    if (food.name === 'Pizza' || Math.random() < 0.05) {
-      console.log(`🎯 [TCM Score] ${food.name}: delta=${tcmResult.scoreDelta}, reasons=${tcmResult.reasons.length}`);
-    }
+    // if (food.name === 'Pizza' || Math.random() < 0.05) {
+    //   console.log(`🎯 [TCM Score] ${food.name}: delta=${tcmResult.scoreDelta}, reasons=${tcmResult.reasons.length}`);
+    // }
   } else if (userFramework === 'modern') {
     modernResult = evaluateModern(user, food);
   }

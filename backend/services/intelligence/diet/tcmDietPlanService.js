@@ -20,12 +20,12 @@ class TCMDietPlanService {
         throw new Error('Invalid user assessment data');
       }
 
-      console.log('📊 Loading TCM foods from JSON file...');
+      // console.log('📊 Loading TCM foods from JSON file...');
 
       // Load all foods from JSON
       const foods = tcmDietEngine.getAllFoods();
 
-      console.log(`📊 Scoring ${foods.length} foods for TCM diet plan...`);
+      // console.log(`📊 Scoring ${foods.length} foods for TCM diet plan...`);
 
       // Score all foods
       const scoredFoods = foods.map(food => 
@@ -35,12 +35,12 @@ class TCMDietPlanService {
       // Rank foods
       const rankedFoods = tcmDietEngine.rankFoods(scoredFoods);
 
-      console.log(`✅ Ranked foods: ${rankedFoods.recommendation_count} recommended, ${rankedFoods.avoid_count} to avoid`);
+      // console.log(`✅ Ranked foods: ${rankedFoods.recommendation_count} recommended, ${rankedFoods.avoid_count} to avoid`);
 
       // Generate 7-day meal plan
       const mealPlan = tcmMealPlan.generateWeeklyPlan(rankedFoods, userAssessment);
 
-      console.log('✅ Generated 7-day TCM meal plan');
+      // console.log('✅ Generated 7-day TCM meal plan');
 
       // Return complete response in format matching Ayurveda (for consistency)
       return {

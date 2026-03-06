@@ -128,18 +128,18 @@ class TCMDietEngine {
   scoreFood(food, userAssessment) {
     if (!this.validateFoodEntry(food)) {
       // Debug: Log invalid foods
-      if (Math.random() < 0.05) {
-        console.log(`❌ [TCM] Invalid food entry: ${food.name}, has tcm:`, !!food.tcm);
-      }
+      // if (Math.random() < 0.05) {
+      //   console.log(`❌ [TCM] Invalid food entry: ${food.name}, has tcm:`, !!food.tcm);
+      // }
       return { food_name: food.name, score: 0, valid: false };
     }
 
     const { primary_pattern, secondary_pattern, cold_heat, severity } = userAssessment;
     
     // Debug: Log assessment values for sample foods
-    if (food.name === 'Pizza' || Math.random() < 0.05) {
-      console.log(`📋 [TCM Engine] Assessing ${food.name}:`, { primary_pattern, cold_heat, severity });
-    }
+    // if (food.name === 'Pizza' || Math.random() < 0.05) {
+    //   console.log(`📋 [TCM Engine] Assessing ${food.name}:`, { primary_pattern, cold_heat, severity });
+    // }
     
     let score = 0;
     const scoreBreakdown = {
@@ -170,9 +170,9 @@ class TCMDietEngine {
     reasons.push(...balanceScore.reasons);
 
     // Debug: Log final scores for sample foods
-    if (food.name === 'Pizza' || Math.random() < 0.05) {
-      console.log(`🎯 [TCM Final] ${food.name}: score=${score}, breakdown=`, scoreBreakdown, `reasons=${reasons.length}`);
-    }
+    // if (food.name === 'Pizza' || Math.random() < 0.05) {
+    //   console.log(`🎯 [TCM Final] ${food.name}: score=${score}, breakdown=`, scoreBreakdown, `reasons=${reasons.length}`);
+    // }
 
     return {
       food_name: food.name,

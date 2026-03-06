@@ -863,27 +863,27 @@ router.get('/', protect, authorize('user'), async (req, res) => {
       }
     }
     
-    console.log('🔍 User profile for recommendations:', {
-      hasPrakriti: !!userProfile.prakriti,
-      prakriti: userProfile.prakriti,
-      hasAssessmentData: !!userProfile.assessmentData,
-      assessmentFramework: latestAssessment?.framework,
-      medicalConditions: userProfile.medicalConditions.length,
-      allergies: userProfile.allergies.length
-    });
+    // console.log('🔍 User profile for recommendations:', {
+    //   hasPrakriti: !!userProfile.prakriti,
+    //   prakriti: userProfile.prakriti,
+    //   hasAssessmentData: !!userProfile.assessmentData,
+    //   assessmentFramework: latestAssessment?.framework,
+    //   medicalConditions: userProfile.medicalConditions.length,
+    //   allergies: userProfile.allergies.length
+    // });
     
     // Get food recommendations
     let recommendedFoods = [];
     let foodsToAvoid = [];
     
     try {
-      console.log('🍽️ Calling recommendation service...');
+      // console.log('🍽️ Calling recommendation service...');
       const foodRecs = await recommendFoodService.getPersonalizedRecommendations(userProfile, {
         limit: 4,
         minScore: 55  // Lowered from 70 to get actual scored foods
       });
-      console.log('✅ Got food recommendations:', foodRecs.recommendations.length);
-      console.log('📊 Sample scores:', foodRecs.recommendations.slice(0, 3).map(f => ({ name: f.name, score: f.finalScore })));
+      // console.log('✅ Got food recommendations:', foodRecs.recommendations.length);
+      // console.log('📊 Sample scores:', foodRecs.recommendations.slice(0, 3).map(f => ({ name: f.name, score: f.finalScore })));
       
       // Determine framework for tag generation
       const framework = latestAssessment?.framework || 'ayurveda';
@@ -925,16 +925,16 @@ router.get('/', protect, authorize('user'), async (req, res) => {
         minScore: 0
       });
       
-      console.log('📉 Total foods evaluated:', avoidRecs.recommendations.length);
-      console.log('📉 Low score foods:', avoidRecs.recommendations.filter(f => f.finalScore < 48).length);
-      console.log('📉 Score range:', avoidRecs.recommendations.length > 0 ? `${Math.min(...avoidRecs.recommendations.map(f => f.finalScore))}-${Math.max(...avoidRecs.recommendations.map(f => f.finalScore))}` : 'none');
+      // console.log('📉 Total foods evaluated:', avoidRecs.recommendations.length);
+      // console.log('📉 Low score foods:', avoidRecs.recommendations.filter(f => f.finalScore < 48).length);
+      // console.log('📉 Score range:', avoidRecs.recommendations.length > 0 ? `${Math.min(...avoidRecs.recommendations.map(f => f.finalScore))}-${Math.max(...avoidRecs.recommendations.map(f => f.finalScore))}` : 'none');
       
       foodsToAvoid = avoidRecs.recommendations
         .filter(food => food.finalScore < 48 || (food.warnings && food.warnings.length > 0))
         .slice(0, 4)
         .map(food => food.name);
       
-      console.log('⚠️ Foods to avoid from scoring:', foodsToAvoid.length, foodsToAvoid);
+      // console.log('⚠️ Foods to avoid from scoring:', foodsToAvoid.length, foodsToAvoid);
       
       // If not enough foods from recommendation service, check cache or use LLM
       if (foodsToAvoid.length < 4) {
@@ -946,7 +946,7 @@ router.get('/', protect, authorize('user'), async (req, res) => {
                             user.llmCache.assessmentId?.toString() === latestAssessment?._id?.toString();
         
         if (isCacheValid) {
-          console.log('✅ Using cached LLM foods to avoid (expires:', user.llmCache.expiresAt, ')');
+          // console.log('✅ Using cached LLM foods to avoid (expires:', user.llmCache.expiresAt, ')');
           foodsToAvoid = user.llmCache.foodsToAvoid;
         } else {
           console.log('🤖 Using LLM to generate foods to avoid...');
@@ -984,7 +984,7 @@ router.get('/', protect, authorize('user'), async (req, res) => {
                           user.llmCache.expiresAt > new Date();
       
       if (isCacheValid) {
-        console.log('✅ Using cached LLM foods to avoid (from error fallback)');
+        // console.log('✅ Using cached LLM foods to avoid (from error fallback)');
         foodsToAvoid = user.llmCache.foodsToAvoid;
       } else {
         console.log('🤖 Calling LLM for foods to avoid (error fallback)');
@@ -1022,13 +1022,13 @@ router.get('/', protect, authorize('user'), async (req, res) => {
     const dominant = getDominantDosha(latestAssessment, user.prakriti, user);
     const conditionsCount = (user.chronicConditions || []).length;
     
-    console.log('📊 Dominant dosha calculation:', {
-      name: dominant.name,
-      percentage: dominant.percentage,
-      source: dominant.source,
-      hasAssessment: !!latestAssessment,
-      assessmentFramework: latestAssessment?.framework
-    });
+    // console.log('📊 Dominant dosha calculation:', {
+    //   name: dominant.name,
+    //   percentage: dominant.percentage,
+    //   source: dominant.source,
+    //   hasAssessment: !!latestAssessment,
+    //   assessmentFramework: latestAssessment?.framework
+    // });
     
     // Calculate daily calorie target (basic formula based on weight, age, gender)
     let calorieTarget = 2000; // Default for adult

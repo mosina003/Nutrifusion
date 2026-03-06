@@ -537,10 +537,10 @@ router.get('/diet-plan/current', protect, async (req, res) => {
 
     // Convert DietPlan format back to 7_day_plan format for dashboard compatibility
     const sevenDayPlan = convertMealsToSevenDayPlan(dietPlan.meals);
-    console.log('✅ Converted diet plan meals to 7-day format');
-    console.log('📅 Available days:', Object.keys(sevenDayPlan));
-    console.log('📊 Day 1 sample:', JSON.stringify(sevenDayPlan['day_1']));
-    console.log('🍽️ Total meals in database:', dietPlan.meals?.length || 0);
+    // console.log('✅ Converted diet plan meals to 7-day format');
+    // console.log('📅 Available days:', Object.keys(sevenDayPlan));
+    // console.log('📊 Day 1 sample:', JSON.stringify(sevenDayPlan['day_1']));
+    // console.log('🍽️ Total meals in database:', dietPlan.meals?.length || 0);
     
     const response = {
       '7_day_plan': sevenDayPlan,
@@ -593,7 +593,7 @@ router.get('/diet-plan/current', protect, async (req, res) => {
       }
     });
     
-    console.log(`✅ Sent diet plan response for ${framework} framework with ${Object.keys(sevenDayPlan).length} days`);
+    // console.log(`✅ Sent diet plan response for ${framework} framework with ${Object.keys(sevenDayPlan).length} days`);
     
   } catch (error) {
     console.error('Error fetching diet plan:', error);

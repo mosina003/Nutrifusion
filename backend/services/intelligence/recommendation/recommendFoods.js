@@ -22,15 +22,15 @@ const recommendFoods = async (user, options = {}) => {
     // For TCM users, load foods from JSON file (has detailed pattern_effects)
     let foods = [];
     if (userFramework === 'tcm') {
-      console.log('📊 [RecommendFood] Loading TCM foods from JSON file');
+      // console.log('📊 [RecommendFood] Loading TCM foods from JSON file');
       const allTCMFoods = tcmDietEngine.getAllFoods();
-      console.log(`📊 [RecommendFood] Loaded ${allTCMFoods.length} TCM foods`);
+      // console.log(`📊 [RecommendFood] Loaded ${allTCMFoods.length} TCM foods`);
       
       // Debug: Check first food structure
-      if (allTCMFoods.length > 0) {
-        const sample = allTCMFoods[0];
-        console.log(`📋 Sample TCM food: ${sample.name}, hasClears_heat=${sample.tcm?.clears_heat}, thermal=${sample.tcm?.thermalNature}`);
-      }
+      // if (allTCMFoods.length > 0) {
+      //   const sample = allTCMFoods[0];
+      //   console.log(`📋 Sample TCM food: ${sample.name}, hasClears_heat=${sample.tcm?.clears_heat}, thermal=${sample.tcm?.thermalNature}`);
+      // }
       
       // Apply category filter if specified
       if (category) {
@@ -90,10 +90,10 @@ const recommendFoods = async (user, options = {}) => {
     qualified.sort((a, b) => b.finalScore - a.finalScore);
     
     // Debug: Log top scores for TCM users
-    if (userFramework === 'tcm' && qualified.length > 0) {
-      console.log(`✅ [RecommendFood] TCM qualified foods: ${qualified.length}/${scoredFoods.length}`);
-      console.log(`📊 Top scores:`, qualified.slice(0, 5).map(f => `${f.name}=${f.finalScore}`));
-    }
+    // if (userFramework === 'tcm' && qualified.length > 0) {
+    //   console.log(`✅ [RecommendFood] TCM qualified foods: ${qualified.length}/${scoredFoods.length}`);
+    //   console.log(`📊 Top scores:`, qualified.slice(0, 5).map(f => `${f.name}=${f.finalScore}`));
+    // }
 
     // Return top N
     return qualified.slice(0, limit);
